@@ -1,17 +1,376 @@
-0<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>AgarZ Clone</title>
+  <title>AgarLatina</title>
   <style>
-    body { margin: 0; background: #111; overflow: hidden; }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: #111; overflow: hidden; font-family: Arial, sans-serif; }
     canvas { display: block; }
+
+    #pantallaNombre {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.85);
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      z-index: 100;
+    }
+    #pantallaNombre h1 { color: #4af; font-size: 3em; margin-bottom: 10px; text-shadow: 0 0 20px #4af; }
+    #pantallaNombre p { color: #aaa; margin-bottom: 30px; font-size: 1.1em; }
+    #pantallaNombre input {
+      padding: 12px 24px; font-size: 1.2em; border-radius: 8px;
+      border: 2px solid #4af; background: #222; color: #fff;
+      outline: none; margin-bottom: 15px; text-align: center; width: 280px;
+    }
+    #pantallaNombre button {
+      padding: 12px 40px; font-size: 1.1em; border-radius: 8px;
+      background: #4af; color: #000; border: none; cursor: pointer; font-weight: bold;
+    }
+    #pantallaNombre button:hover { background: #2af; }
+
+    #pantallaFin {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.85);
+      display: none; flex-direction: column;
+      align-items: center; justify-content: center;
+      z-index: 100;
+    }
+    #pantallaFin h2 { color: #f44; font-size: 2.5em; margin-bottom: 10px; }
+    #pantallaFin p { color: #aaa; font-size: 1.2em; margin-bottom: 20px; }
+    #pantallaFin button {
+      padding: 12px 40px; font-size: 1.1em; border-radius: 8px;
+      background: #4af; color: #000; border: none; cursor: pointer; font-weight: bold;
+    }
+
+    #ranking {
+      position: fixed; top: 20px; right: 20px;
+      background: rgba(0,0,0,0.7); border-radius: 10px;
+      padding: 12px 18px; color: #fff; min-width: 180px;
+      z-index: 50;
+    }
+    #ranking h3 { color: #ffd700; margin-bottom: 8px; font-size: 1em; text-align: center; }
+    #ranking ol { padding-left: 20px; font-size: 0.85em; line-height: 1.8; }
+    #ranking li { color: #ddd; }
+    #ranking li.yo { color: #4af; font-weight: bold; }
+
+    #hud {
+      position: fixed; bottom: 20px; left: 20px;
+      color: #fff; font-size: 0.9em; background: rgba(0,0,0,0.5);
+      padding: 8px 14px; border-radius: 8px; z-index: 50;
+    }
+
+    #adminPanel {
+      position: fixed; top: 20px; left: 20px;
+      background: rgba(0,0,0,0.85); border: 1px solid #f90;
+      border-radius: 10px; padding: 15px; z-index: 50;
+      display: none; min-width: 200px;
+    }
+    #adminPanel h3 { color: #f90; margin-bottom: 10px; }
+    #adminPanel button {
+      display: block; width: 100%; margin: 5px 0;
+      padding: 8px; border-radius: 6px; border: none;
+      background: #333; color: #fff; cursor: pointer; font-size: 0.9em;
+    }
+    #adminPanel button:hover { background: #555; }
+    #adminPanel input {
+      width: 100%; padding: 6px; border-radius: 6px;
+      border: 1px solid #555; background: #222; color: #fff;
+      margin: 5px 0; font-size: 0.85em;
+    }
+
+    #btnAdmin {
+      position: fixed; bottom: 20px; right: 20px;
+      background: #f90; color: #000; border: none;
+      padding: 8px 16px; border-radius: 8px; cursor: pointer;
+      font-weight: bold; z-index: 50; font-size: 0.85em;
+    }
+
+    #mensajeAdmin {
+      position: fixed; top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(255,150,0,0.95); color: #000;
+      padding: 20px 40px; border-radius: 12px;
+      font-size: 1.4em; font-weight: bold;
+      z-index: 200; display: none;
+    }
   </style>
 </head>
 <body>
-  <canvas id="gameCanvas"></canvas>
-  <script src="/socket.io/socket.io.js"></script>
-  <script src="bot.js"></script>
-  <script src="game.js"></script>
-  </body>
+<canvas id="gameCanvas"></canvas>
+
+<div id="pantallaNombre">
+  <h1>🌎 AgarLatina</h1>
+  <p>Come, crece y domina el mundo</p>
+  <input id="inputNombre" type="text" placeholder="Tu nombre..." maxlength="16" />
+  <button onclick="entrarJuego()">¡JUGAR!</button>
+</div>
+
+<div id="pantallaFin">
+  <h2>💀 ¡Te comieron!</h2>
+  <p id="textoKiller"></p>
+  <button onclick="reiniciar()">Volver a jugar</button>
+</div>
+
+<div id="ranking">
+  <h3>🏆 Ranking</h3>
+  <ol id="listaRanking"></ol>
+</div>
+
+<div id="hud">Tamaño: <span id="hudSize">30</span></div>
+
+<button id="btnAdmin" onclick="toggleAdmin()">⚙ Admin</button>
+<div id="adminPanel">
+  <h3>⚙ Panel Admin</h3>
+  <input id="adminPass" type="password" placeholder="Contraseña..." />
+  <button onclick="adminLogin()">Entrar</button>
+  <div id="adminCmds" style="display:none">
+    <button onclick="adminCmd('gigante')">🔥 Hacerme gigante</button>
+    <button onclick="adminCmd('masComida')">🍎 +100 comida</button>
+    <button onclick="adminCmd('kickAll')">💀 Eliminar todos</button>
+    <input id="adminMsg" placeholder="Mensaje a todos..." />
+    <button onclick="adminMensaje()">📢 Enviar mensaje</button>
+  </div>
+</div>
+
+<div id="mensajeAdmin"></div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script src="bot.js"></script>
+<script>
+const socket = io();
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+
+const WORLD_W = 4000, WORLD_H = 4000;
+let miId = null;
+let jugadoresRemotos = {};
+let enJuego = false;
+let isAdmin = false;
+
+const jugador = {
+  x: WORLD_W / 2, y: WORLD_H / 2,
+  radius: 30, color: '#4af',
+  nombre: 'Jugador', speed: 3
+};
+
+let mouseX = canvas.width / 2, mouseY = canvas.height / 2;
+let camX = 0, camY = 0;
+
+canvas.addEventListener('mousemove', (e) => {
+  mouseX = e.clientX;
+  mouseY = e.clientY;
+});
+
+window.addEventListener('resize', () => {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+});
+
+let comidas = [];
+for (let i = 0; i < 200; i++) comidas.push(nuevaComida());
+
+function nuevaComida() {
+  return {
+    x: Math.random() * WORLD_W,
+    y: Math.random() * WORLD_H,
+    radius: 6,
+    color: `hsl(${Math.random() * 360}, 80%, 60%)`
+  };
+}
+
+const bots = [];
+for (let i = 0; i < 8; i++) bots.push(new Bot(WORLD_W, WORLD_H));
+
+socket.on('miId', (id) => { miId = id; });
+socket.on('comidas', (data) => { comidas = data; });
+socket.on('jugadores', (data) => { jugadoresRemotos = data; });
+socket.on('ranking', (data) => { actualizarRanking(data); });
+socket.on('muerto', (data) => { mostrarMuerto(data.killer); });
+socket.on('adminOk', () => {
+  isAdmin = true;
+  document.getElementById('adminCmds').style.display = 'block';
+  alert('✅ Eres admin!');
+});
+socket.on('adminFail', () => alert('❌ Contraseña incorrecta'));
+socket.on('comerComida', (data) => {
+  if (data.index >= 0 && data.index < comidas.length) {
+    comidas[data.index] = data.nueva;
+  }
+});
+socket.on('mensajeAdmin', (txt) => {
+  const el = document.getElementById('mensajeAdmin');
+  el.textContent = '📢 ' + txt;
+  el.style.display = 'block';
+  setTimeout(() => el.style.display = 'none', 4000);
+});
+
+function entrarJuego() {
+  const nombre = document.getElementById('inputNombre').value.trim() || 'Jugador';
+  jugador.nombre = nombre;
+  jugador.x = Math.random() * WORLD_W;
+  jugador.y = Math.random() * WORLD_H;
+  jugador.radius = 30;
+  document.getElementById('pantallaNombre').style.display = 'none';
+  enJuego = true;
+  socket.emit('unirse', { nombre });
+}
+
+function mostrarMuerto(killer) {
+  enJuego = false;
+  const el = document.getElementById('pantallaFin');
+  document.getElementById('textoKiller').textContent = killer ? 'Te comió: ' + killer : '';
+  el.style.display = 'flex';
+}
+
+function reiniciar() {
+  document.getElementById('pantallaFin').style.display = 'none';
+  jugador.radius = 30;
+  jugador.x = Math.random() * WORLD_W;
+  jugador.y = Math.random() * WORLD_H;
+  enJuego = true;
+  socket.emit('unirse', { nombre: jugador.nombre });
+}
+
+function actualizarRanking(data) {
+  const lista = document.getElementById('listaRanking');
+  lista.innerHTML = data.map(j =>
+    '<li class="' + (j.nombre === jugador.nombre ? 'yo' : '') + '">' + j.nombre + ' <b>' + j.radius + '</b></li>'
+  ).join('');
+}
+
+function toggleAdmin() {
+  const p = document.getElementById('adminPanel');
+  p.style.display = p.style.display === 'none' ? 'block' : 'none';
+}
+
+function adminLogin() {
+  socket.emit('adminLogin', document.getElementById('adminPass').value);
+}
+
+function adminCmd(tipo) {
+  socket.emit('adminCmd', { tipo });
+  if (tipo === 'gigante') jugador.radius = 300;
+}
+
+function adminMensaje() {
+  const txt = document.getElementById('adminMsg').value;
+  if (txt) socket.emit('adminCmd', { tipo: 'mensaje', texto: txt });
+}
+
+function dibujarCelula(obj, nombre) {
+  ctx.beginPath();
+  ctx.arc(obj.x - camX, obj.y - camY, obj.radius, 0, Math.PI * 2);
+  ctx.fillStyle = obj.color;
+  ctx.fill();
+  ctx.strokeStyle = 'rgba(255,255,255,0.3)';
+  ctx.lineWidth = 2;
+  ctx.stroke();
+  ctx.closePath();
+  if (nombre && obj.radius > 15) {
+    ctx.fillStyle = '#fff';
+    ctx.font = 'bold ' + Math.min(obj.radius * 0.5, 18) + 'px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText(nombre, obj.x - camX, obj.y - camY + 5);
+  }
+}
+
+function dibujarGrid() {
+  ctx.strokeStyle = 'rgba(255,255,255,0.05)';
+  ctx.lineWidth = 1;
+  const tam = 100;
+  const offX = camX % tam;
+  const offY = camY % tam;
+  for (let x = -offX; x < canvas.width; x += tam) {
+    ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke();
+  }
+  for (let y = -offY; y < canvas.height; y += tam) {
+    ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke();
+  }
+}
+
+function moverJugador() {
+  if (!enJuego) return;
+  let dx = mouseX - canvas.width / 2;
+  let dy = mouseY - canvas.height / 2;
+  let dist = Math.sqrt(dx * dx + dy * dy);
+  const speed = jugador.speed * (30 / Math.max(jugador.radius, 30));
+  if (dist > 10) {
+    jugador.x += (dx / dist) * speed * 2;
+    jugador.y += (dy / dist) * speed * 2;
+  }
+  jugador.x = Math.max(0, Math.min(WORLD_W, jugador.x));
+  jugador.y = Math.max(0, Math.min(WORLD_H, jugador.y));
+}
+
+function comerComidaLocal() {
+  for (let i = comidas.length - 1; i >= 0; i--) {
+    const c = comidas[i];
+    if (Math.hypot(jugador.x - c.x, jugador.y - c.y) < jugador.radius) {
+      comidas[i] = nuevaComida();
+      jugador.radius += 0.8;
+    }
+  }
+}
+
+function verificarComerBots() {
+  for (let i = bots.length - 1; i >= 0; i--) {
+    const bot = bots[i];
+    const dist = Math.hypot(jugador.x - bot.x, jugador.y - bot.y);
+    if (dist < jugador.radius && jugador.radius > bot.radius * 1.1) {
+      jugador.radius = Math.sqrt(jugador.radius ** 2 + bot.radius ** 2);
+      bots[i] = new Bot(WORLD_W, WORLD_H);
+    } else if (dist < bot.radius && bot.radius > jugador.radius * 1.1) {
+      mostrarMuerto(bot.nombre);
+    }
+  }
+}
+
+function gameLoop() {
+  ctx.fillStyle = '#111';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  dibujarGrid();
+
+  if (enJuego) {
+    moverJugador();
+    comerComidaLocal();
+    verificarComerBots();
+    camX = jugador.x - canvas.width / 2;
+    camY = jugador.y - canvas.height / 2;
+    document.getElementById('hudSize').textContent = Math.floor(jugador.radius);
+    if (miId) {
+      socket.emit('mover', { x: jugador.x, y: jugador.y, radius: jugador.radius });
+    }
+  }
+
+  for (let c of comidas) {
+    if (c.x - camX > -20 && c.x - camX < canvas.width + 20 &&
+        c.y - camY > -20 && c.y - camY < canvas.height + 20) {
+      dibujarCelula(c);
+    }
+  }
+
+  for (let bot of bots) {
+    bot.decidir(comidas, [...bots, jugador]);
+    bot.mover();
+    bot.comerComida(comidas);
+    dibujarCelula(bot, bot.nombre);
+  }
+
+  for (let id in jugadoresRemotos) {
+    if (id !== miId) {
+      const j = jugadoresRemotos[id];
+      dibujarCelula(j, j.nombre);
+    }
+  }
+
+  if (enJuego) dibujarCelula(jugador, jugador.nombre);
+
+  requestAnimationFrame(gameLoop);
+}
+
+gameLoop();
+</script>
+</body>
 </html>

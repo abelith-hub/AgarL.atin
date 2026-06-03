@@ -1,21 +1,21 @@
 class Bot {
-  constructor() {
-    this.x = Math.random() * canvas.width;
-    this.y = Math.random() * canvas.height;
+  constructor(worldW, worldH) {
+    this.x = Math.random() * worldW;
+    this.y = Math.random() * worldH;
     this.radius = 20 + Math.random() * 15;
     this.color = `hsl(${Math.random() * 360}, 70%, 55%)`;
+    this.nombre = 'Bot_' + Math.floor(Math.random()*1000);
     this.speed = 2;
     this.targetX = this.x;
     this.targetY = this.y;
+    this.worldW = worldW;
+    this.worldH = worldH;
   }
-
   distancia(obj) {
     return Math.hypot(this.x - obj.x, this.y - obj.y);
   }
-
   decidir(comidas, celdas) {
     let prioridad = 'comida';
-
     for (let c of celdas) {
       if (c === this) continue;
       if (c.radius > this.radius * 1.1 && this.distancia(c) < 200) {
@@ -25,7 +25,6 @@ class Bot {
         break;
       }
     }
-
     if (prioridad !== 'huir') {
       for (let c of celdas) {
         if (c === this) continue;
@@ -37,24 +36,15 @@ class Bot {
         }
       }
     }
-
     if (prioridad === 'comida') {
-      let mejor = null;
-      let menorDist = Infinity;
+      let mejor = null, menorDist = Infinity;
       for (let c of comidas) {
         let d = this.distancia(c);
-        if (d < menorDist) {
-          menorDist = d;
-          mejor = c;
-        }
+        if (d < menorDist) { menorDist = d; mejor = c; }
       }
-      if (mejor) {
-        this.targetX = mejor.x;
-        this.targetY = mejor.y;
-      }
+      if (mejor) { this.targetX = mejor.x; this.targetY = mejor.y; }
     }
   }
-
   mover() {
     let dx = this.targetX - this.x;
     let dy = this.targetY - this.y;
@@ -63,14 +53,14 @@ class Bot {
       this.x += (dx / dist) * this.speed;
       this.y += (dy / dist) * this.speed;
     }
+    this.x = Math.max(0, Math.min(this.worldW, this.x));
+    this.y = Math.max(0, Math.min(this.worldH, this.y));
   }
-
   comerComida(comidas) {
     for (let i = comidas.length - 1; i >= 0; i--) {
       if (Math.hypot(this.x - comidas[i].x, this.y - comidas[i].y) < this.radius) {
         comidas.splice(i, 1);
         this.radius += 0.5;
-        generarComida(1);
       }
     }
   }
