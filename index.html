@@ -2,122 +2,216 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>AgarLatina</title>
+  <title>AgarL</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { background: #111; overflow: hidden; font-family: Arial, sans-serif; }
-    canvas { display: block; }
-
-    #pantallaNombre {
-      position: fixed; inset: 0;
-      background: rgba(0,0,0,0.85);
-      display: flex; flex-direction: column;
-      align-items: center; justify-content: center;
-      z-index: 100;
-    }
-    #pantallaNombre h1 { color: #4af; font-size: 3em; margin-bottom: 10px; text-shadow: 0 0 20px #4af; }
-    #pantallaNombre p { color: #aaa; margin-bottom: 30px; font-size: 1.1em; }
-    #pantallaNombre input {
-      padding: 12px 24px; font-size: 1.2em; border-radius: 8px;
-      border: 2px solid #4af; background: #222; color: #fff;
-      outline: none; margin-bottom: 15px; text-align: center; width: 280px;
-    }
-    #pantallaNombre button {
-      padding: 12px 40px; font-size: 1.1em; border-radius: 8px;
-      background: #4af; color: #000; border: none; cursor: pointer; font-weight: bold;
-    }
-    #pantallaNombre button:hover { background: #2af; }
-
-    #pantallaFin {
-      position: fixed; inset: 0;
-      background: rgba(0,0,0,0.85);
-      display: none; flex-direction: column;
-      align-items: center; justify-content: center;
-      z-index: 100;
-    }
-    #pantallaFin h2 { color: #f44; font-size: 2.5em; margin-bottom: 10px; }
-    #pantallaFin p { color: #aaa; font-size: 1.2em; margin-bottom: 20px; }
-    #pantallaFin button {
-      padding: 12px 40px; font-size: 1.1em; border-radius: 8px;
-      background: #4af; color: #000; border: none; cursor: pointer; font-weight: bold;
-    }
-
-    #ranking {
-      position: fixed; top: 20px; right: 20px;
-      background: rgba(0,0,0,0.7); border-radius: 10px;
-      padding: 12px 18px; color: #fff; min-width: 180px;
-      z-index: 50;
-    }
-    #ranking h3 { color: #ffd700; margin-bottom: 8px; font-size: 1em; text-align: center; }
-    #ranking ol { padding-left: 20px; font-size: 0.85em; line-height: 1.8; }
-    #ranking li { color: #ddd; }
+    body { background: #1a1a2e; overflow: hidden; font-family: Arial, sans-serif; color: #fff; }
+    canvas { display: block; position: fixed; top: 0; left: 0; z-index: 0; }
+    #hudTopLeft { position: fixed; top: 8px; left: 8px; color: #fff; font-size: 13px; z-index: 50; display: none; line-height: 1.6; text-shadow: 1px 1px 2px #000; }
+    #minimap { width: 80px; height: 80px; background: rgba(0,0,0,0.5); border: 1px solid #555; margin-top: 4px; position: relative; }
+    #minimapDot { position: absolute; width: 6px; height: 6px; border-radius: 50%; background: #4af; transform: translate(-50%,-50%); }
+    #ranking { position: fixed; top: 8px; right: 8px; background: rgba(0,0,0,0.5); border-radius: 6px; padding: 8px 14px; min-width: 150px; z-index: 50; display: none; font-size: 12px; }
+    #ranking h3 { color: #ffd700; margin-bottom: 5px; font-size: 12px; }
+    #ranking ol { padding-left: 16px; line-height: 1.8; }
     #ranking li.yo { color: #4af; font-weight: bold; }
-
-    #hud {
-      position: fixed; bottom: 20px; left: 20px;
-      color: #fff; font-size: 0.9em; background: rgba(0,0,0,0.5);
-      padding: 8px 14px; border-radius: 8px; z-index: 50;
-    }
-
-    #adminPanel {
-      position: fixed; top: 20px; left: 20px;
-      background: rgba(0,0,0,0.85); border: 1px solid #f90;
-      border-radius: 10px; padding: 15px; z-index: 50;
-      display: none; min-width: 200px;
-    }
-    #adminPanel h3 { color: #f90; margin-bottom: 10px; }
-    #adminPanel button {
-      display: block; width: 100%; margin: 5px 0;
-      padding: 8px; border-radius: 6px; border: none;
-      background: #333; color: #fff; cursor: pointer; font-size: 0.9em;
-    }
-    #adminPanel button:hover { background: #555; }
-    #adminPanel input {
-      width: 100%; padding: 6px; border-radius: 6px;
-      border: 1px solid #555; background: #222; color: #fff;
-      margin: 5px 0; font-size: 0.85em;
-    }
-
-    #btnAdmin {
-      position: fixed; bottom: 20px; right: 20px;
-      background: #f90; color: #000; border: none;
-      padding: 8px 16px; border-radius: 8px; cursor: pointer;
-      font-weight: bold; z-index: 50; font-size: 0.85em;
-    }
-
-    #mensajeAdmin {
-      position: fixed; top: 50%; left: 50%;
-      transform: translate(-50%, -50%);
-      background: rgba(255,150,0,0.95); color: #000;
-      padding: 20px 40px; border-radius: 12px;
-      font-size: 1.4em; font-weight: bold;
-      z-index: 200; display: none;
-    }
+    #chatBox { position: fixed; bottom: 30px; left: 8px; z-index: 50; display: none; font-size: 12px; width: 220px; }
+    #chatMsgs { max-height: 80px; overflow: hidden; }
+    #chatInput { width: 100%; background: rgba(0,0,0,0.6); border: none; color: #fff; font-size: 12px; padding: 3px 6px; outline: none; display: none; }
+    #chatHint { color: #aaa; font-size: 11px; }
+    #hudStats { position: fixed; bottom: 8px; right: 8px; color: #ccc; font-size: 11px; z-index: 50; display: none; text-align: right; line-height: 1.7; text-shadow: 1px 1px 2px #000; }
+    #bottomBar { position: fixed; bottom: 0; left: 0; right: 0; background: rgba(0,0,0,0.7); height: 26px; display: none; align-items: center; padding: 0 10px; font-size: 11px; color: #aaa; z-index: 50; gap: 12px; }
+    .barBtn { background: #333; border: none; color: #fff; padding: 2px 8px; border-radius: 3px; cursor: pointer; font-size: 11px; }
+    .barBtn.on { background: #4af; color: #000; }
+    #pantallaLogin { position: fixed; inset: 0; display: flex; z-index: 100; }
+    #loginLeft { width: 220px; background: rgba(0,0,0,0.75); padding: 12px; font-size: 12px; overflow-y: auto; border-right: 1px solid #333; }
+    #loginLeft a { color: #4af; text-decoration: none; display: block; margin: 3px 0; line-height: 1.6; }
+    #loginLeft a:hover { text-decoration: underline; }
+    #loginLeft hr { border-color: #333; margin: 8px 0; }
+    #loginCenter { flex: 1; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.3); }
+    #loginBox { background: rgba(10,10,25,0.97); border-radius: 8px; padding: 24px 28px; width: 360px; text-align: center; border: 1px solid #2a2a4a; }
+    #loginLogo { font-size: 3em; font-weight: 900; letter-spacing: 3px; color: #fff; font-family: 'Arial Black', sans-serif; text-shadow: 2px 2px 0 #000, -1px -1px 0 #555; margin-bottom: 16px; display: block; }
+    .inputRow { display: flex; gap: 6px; margin: 5px 0; }
+    .inputRow input { flex: 1; }
+    .inputRow select { width: 100px; }
+    #loginBox input, #loginBox select, #loginRight input { width: 100%; padding: 8px 10px; margin: 4px 0; border-radius: 4px; border: 1px solid #444; background: #111; color: #fff; font-size: 13px; outline: none; }
+    #loginBox input:focus, #loginRight input:focus { border-color: #4af; }
+    #loginBox select { background: #111; }
+    #skinRow { display: flex; gap: 6px; margin: 6px 0; align-items: center; }
+    #skinInput { flex: 1; }
+    .skinGalleryBtn { padding: 8px 10px; background: #222; border: 1px solid #444; border-radius: 4px; color: #aaa; cursor: pointer; font-size: 12px; white-space: nowrap; }
+    .btnJugar { width: 100%; padding: 10px; margin: 5px 0; border-radius: 5px; border: none; cursor: pointer; font-size: 1em; font-weight: bold; }
+    .btnJugar.azul { background: #2196f3; color: #fff; }
+    .btnJugar.azul:hover { background: #1976d2; }
+    .btnJugar.amarillo { background: #f59e0b; color: #000; }
+    .btnJugar.amarillo:hover { background: #d97706; }
+    .opciones { display: flex; flex-wrap: wrap; gap: 5px; font-size: 11px; margin: 6px 0; justify-content: center; }
+    .opciones label { display: flex; align-items: center; gap: 3px; cursor: pointer; color: #ccc; }
+    .flags { display: flex; gap: 5px; justify-content: center; margin-top: 8px; font-size: 18px; cursor: pointer; }
+    #loginRight { width: 200px; background: rgba(0,0,0,0.75); padding: 16px; border-left: 1px solid #333; display: flex; flex-direction: column; justify-content: center; }
+    #loginRight h3 { color: #fff; margin-bottom: 10px; font-size: 13px; font-weight: bold; }
+    #loginRight a { color: #4af; font-size: 11px; text-decoration: none; display: block; margin: 4px 0; }
+    #loginRight a:hover { text-decoration: underline; }
+    #loginRight button { width: 100%; padding: 8px; margin: 5px 0; border-radius: 4px; border: none; cursor: pointer; background: #2196f3; color: #fff; font-weight: bold; font-size: 13px; }
+    #loginRight button:hover { background: #1976d2; }
+    .msgError { color: #f44; font-size: 11px; margin: 3px 0; }
+    .msgOk { color: #4f4; font-size: 11px; margin: 3px 0; }
+    #pantallaFin { position: fixed; inset: 0; background: rgba(0,0,0,0.85); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 100; }
+    #pantallaFin h2 { color: #f44; font-size: 2.2em; margin-bottom: 10px; }
+    #pantallaFin button { padding: 11px 36px; font-size: 1em; border-radius: 6px; background: #2196f3; color: #fff; border: none; cursor: pointer; font-weight: bold; margin-top: 10px; }
+    #adminPanel { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.95); border: 1px solid #f90; border-radius: 8px; padding: 14px; z-index: 200; display: none; min-width: 200px; }
+    #adminPanel h3 { color: #f90; margin-bottom: 8px; font-size: 13px; }
+    #adminPanel button { display: block; width: 100%; margin: 4px 0; padding: 7px; border-radius: 4px; border: none; background: #333; color: #fff; cursor: pointer; font-size: 12px; }
+    #adminPanel input { width: 100%; padding: 5px; border-radius: 4px; border: 1px solid #555; background: #222; color: #fff; margin: 4px 0; font-size: 12px; }
+    #btnAdmin { position: fixed; bottom: 30px; right: 8px; background: #f90; color: #000; border: none; padding: 5px 12px; border-radius: 5px; cursor: pointer; font-weight: bold; z-index: 50; font-size: 11px; display: none; }
+    #mensajeAdmin { position: fixed; top: 50%; left: 50%; transform: translate(-50%,-50%); background: rgba(255,150,0,0.95); color: #000; padding: 18px 36px; border-radius: 10px; font-size: 1.3em; font-weight: bold; z-index: 300; display: none; }
+    #skinModal { position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 200; display: none; align-items: center; justify-content: center; }
+    #skinModalBox { background: #111; border-radius: 8px; padding: 20px; width: 320px; text-align: center; }
+    #skinModalBox h3 { color: #4af; margin-bottom: 12px; }
+    .skinGrid { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+    .skinCircle { width: 44px; height: 44px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; }
+    .skinCircle:hover, .skinCircle.selected { border-color: #4af; }
+    .skinModalClose { margin-top: 12px; padding: 7px 20px; background: #333; border: none; color: #fff; border-radius: 5px; cursor: pointer; }
   </style>
 </head>
 <body>
 <canvas id="gameCanvas"></canvas>
-
-<div id="pantallaNombre">
-  <h1>🌎 AgarLatina</h1>
-  <p>Come, crece y domina el mundo</p>
-  <input id="inputNombre" type="text" placeholder="Tu nombre..." maxlength="16" />
-  <button onclick="entrarJuego()">¡JUGAR!</button>
+<div id="hudTopLeft">
+  Puntuación: <span id="hudScore">0</span><br>
+  Max: <span id="hudMax">0</span><br>
+  Partes: <span id="hudParts">0/0</span>
+  <div id="minimap"><div id="minimapDot"></div></div>
+  <span style="font-size:11px;color:#aaa">5, 5 compartir</span>
 </div>
-
+<div id="ranking"><h3>🏆 Ranking</h3><ol id="listaRanking"></ol></div>
+<div id="chatBox">
+  <div id="chatMsgs"></div>
+  <input id="chatInput" placeholder="¡Pulsa Enter para escribir!" />
+  <span id="chatHint">¡Pulsa Enter para escribir!</span>
+</div>
+<div id="hudStats">
+  Ping: <span id="hudPing">1</span><br>
+  Fps: <span id="hudFps">60</span><br>
+  Tamaño de parte: <span id="hudSize">30</span><br>
+  Recuento parcial: 0<br>
+  Recuento de jugadores: <span id="hudPlayers">0</span><br>
+  Virus: 0
+</div>
+<div id="bottomBar">
+  <button class="barBtn on">OFF</button>
+  <span>✅Todos</span>
+  <span>■Colocar</span>
+</div>
+<div id="pantallaLogin">
+  <div id="loginLeft">
+    <a href="#">Salón de la Fama</a>
+    <a href="#">Mejores Jugadores</a>
+    <a href="#">Mejores Clanes</a>
+    <a href="#">Últimos Archivos</a>
+    <a href="#">How to play, Últimas actualizaciones</a>
+    <a href="#">Nombre de búsqueda / Premium de búsqueda</a>
+    <hr>
+    <a href="#">Compra-venta premium</a>
+    <a href="#">Comprar Premium!</a>
+    <a href="#">Récord de Comercio</a>
+  </div>
+  <div id="loginCenter">
+    <div id="loginBox">
+      <span id="loginLogo">AgarL</span>
+      <div class="inputRow">
+        <input type="text" id="inputNombre" placeholder="Nombre" maxlength="16" />
+        <select id="serverSelect">
+          <option>Etkinlik-1</option><option>Alan-1</option>
+          <option>FFA-1</option><option>FFA-2</option><option>FFA-3</option><option>FFA-4</option>
+          <option>FFA-5</option><option>FFA-6</option><option>FFA-7</option><option>FFA-8</option>
+          <option>FFA-9</option><option>FFA-10</option><option>FFA-11</option><option>FFA-12</option>
+          <option>FFA-13</option><option>FFA-14</option><option>FFA-15</option><option>FFA-16</option>
+          <option>FFA-17</option><option>FFA-18</option><option>FFA-19</option><option>FFA-20</option>
+          <option>FFA-21</option><option>FFA-22</option><option>FFA-23</option><option>FFA-24</option>
+          <option>FFA-25</option><option>FFA-26</option><option>FFA-27</option><option>FFA-28</option>
+          <option>FFA-29</option><option>FFA-30</option><option>FFA-31</option><option>FFA-32</option>
+          <option>FFA-33</option><option>FFA-34</option><option>FFA-35</option><option>FFA-36</option>
+          <option>FFA-37</option><option>FFA-38</option><option>FFA-39</option><option>FFA-40</option>
+          <option>FFA-41</option><option>FFA-42</option><option>FFA-43</option><option>FFA-44</option>
+          <option>FFA-45</option><option>FFA-46</option><option>FFA-47</option><option>FFA-48</option>
+          <option>FFA-49</option><option>FFA-50</option><option>FFA-51</option><option>FFA-52</option>
+          <option>FFA-53</option><option>FFA-54</option><option>FFA-55</option><option>FFA-56</option>
+          <option>FFA-57</option><option>FFA-58</option><option>FFA-59</option><option>FFA-60</option>
+          <option>FFA-61</option><option>FFA-62</option><option>FFA-63</option><option>FFA-64</option>
+          <option>FFA-65</option><option>FFA-66</option><option>FFA-67</option><option>FFA-68</option>
+          <option>FFA-69</option><option>FFA-70</option><option>FFA-71</option><option>FFA-72</option>
+          <option>FFA-73</option><option>FFA-74</option><option>FFA-75</option><option>FFA-76</option>
+          <option>FFA-77</option>
+          <option>CFFA-1</option><option>CFFA-2</option>
+          <option>VS-CFFA</option><option>VS-FFA</option><option>VS-GSZ</option>
+          <option>EKP-1</option><option>GSZ-1</option>
+        </select>
+        <span style="padding:8px 6px;color:#aaa;font-size:12px">F</span>
+      </div>
+      <div id="skinRow">
+        <input type="text" id="skinInput" placeholder="Skin" />
+        <button class="skinGalleryBtn" onclick="abrirSkins()">Navegar por los temas</button>
+        <span style="padding:8px 6px;color:#aaa;font-size:12px">F</span>
+      </div>
+      <button class="btnJugar azul" onclick="entrarJuego()">Jugar</button>
+      <div style="display:flex;gap:6px">
+        <button class="btnJugar amarillo" style="flex:1">Observador</button>
+        <button class="btnJugar amarillo" style="flex:1">Repetición</button>
+      </div>
+      <div class="opciones">
+        <label><input type="checkbox" id="optPiel" checked> mostrar la piel</label>
+        <label><input type="checkbox" id="optNombre" checked> Mostrar nombre</label>
+        <label><input type="checkbox" id="optOscuro" checked> Oscuro</label>
+        <label><input type="checkbox" id="optTransp" checked> Transparente</label>
+        <label><input type="checkbox" id="optPunt" checked> Mostrar Puntuación</label>
+        <label><input type="checkbox" id="optSimple" checked> Simple Green</label>
+        <label><input type="checkbox" id="optMacro" checked> Makro</label>
+        <label><input type="checkbox" id="optAlred" checked> Mostrar alrededor</label>
+        <label><input type="checkbox" id="optInfo"> Muestra información</label>
+        <label><input type="checkbox" id="optChat"> Ocultar los chats</label>
+        <label><input type="checkbox" id="optBorde" checked> Borde</label>
+        <label><input type="checkbox" id="optClan" checked> Clan</label>
+        <label><input type="checkbox" id="optRapida"> Rápida</label>
+        <label><input type="checkbox" id="optNumCuenta"> Mostrar número de cuenta en el chat</label>
+        <label><input type="checkbox" id="optPantalla"> Pantalla completa</label>
+        <label><input type="checkbox" id="optGL"> GL</label>
+      </div>
+      <div class="flags">🇹🇷 🇬🇧 🇪🇸 🇩🇪 🇷🇺</div>
+      <div style="font-size:10px;color:#666;margin-top:10px;line-height:1.5">
+        Mueva su ratón para controlar sus células,<br>
+        Pulse Space para dividir,<br>
+        Pulse W, E para expulsar algo de masa,<br>
+        Presione A, S para ganar masa (pasar el oro),<br>
+        Presiona 1, Q, 2 para cambiar de observador.<br>
+        Z, X teclas macro
+      </div>
+    </div>
+  </div>
+  <div id="loginRight">
+    <h3>Iniciar sesión de usuario</h3>
+    <label style="font-size:11px;color:#aaa">Email</label>
+    <input type="email" id="loginEmail" placeholder="email@ejemplo.com" />
+    <label style="font-size:11px;color:#aaa">Clave</label>
+    <input type="password" id="loginPass" placeholder="Contraseña" />
+    <div id="loginMsg" class="msgError"></div>
+    <button onclick="iniciarSesion()">Iniciar sesión</button>
+    <a href="#" onclick="mostrarRegistro()">Registro de Usuario</a>
+    <a href="#">Restablecer la contraseña</a>
+    <div id="registroBox" style="display:none;margin-top:10px">
+      <hr style="border-color:#333;margin:8px 0">
+      <h3 style="color:#4af;font-size:12px;margin-bottom:6px">Registro</h3>
+      <input type="email" id="regEmail" placeholder="Email" />
+      <input type="text" id="regUser" placeholder="Usuario" maxlength="16" />
+      <input type="password" id="regPass" placeholder="Contraseña" />
+      <div id="regMsg" class="msgError"></div>
+      <button onclick="registrarse()" style="background:#2ecc71">Registrarse</button>
+    </div>
+  </div>
+</div>
 <div id="pantallaFin">
   <h2>💀 ¡Te comieron!</h2>
-  <p id="textoKiller"></p>
+  <p id="textoKiller" style="color:#aaa;font-size:14px"></p>
   <button onclick="reiniciar()">Volver a jugar</button>
 </div>
-
-<div id="ranking">
-  <h3>🏆 Ranking</h3>
-  <ol id="listaRanking"></ol>
-</div>
-
-<div id="hud">Tamaño: <span id="hudSize">30</span></div>
-
 <button id="btnAdmin" onclick="toggleAdmin()">⚙ Admin</button>
 <div id="adminPanel">
   <h3>⚙ Panel Admin</h3>
@@ -129,11 +223,17 @@
     <button onclick="adminCmd('kickAll')">💀 Eliminar todos</button>
     <input id="adminMsg" placeholder="Mensaje a todos..." />
     <button onclick="adminMensaje()">📢 Enviar mensaje</button>
+    <button onclick="toggleAdmin()">Cerrar</button>
   </div>
 </div>
-
 <div id="mensajeAdmin"></div>
-
+<div id="skinModal">
+  <div id="skinModalBox">
+    <h3>Galería de Skins</h3>
+    <div class="skinGrid" id="skinGrid"></div>
+    <button class="skinModalClose" onclick="cerrarSkins()">Cerrar</button>
+  </div>
+</div>
 <script src="/socket.io/socket.io.js"></script>
 <script src="bot.js"></script>
 <script>
@@ -142,234 +242,147 @@ const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
-
 const WORLD_W = 4000, WORLD_H = 4000;
-let miId = null;
-let jugadoresRemotos = {};
-let enJuego = false;
-let isAdmin = false;
-
-const jugador = {
-  x: WORLD_W / 2, y: WORLD_H / 2,
-  radius: 30, color: '#4af',
-  nombre: 'Jugador', speed: 3
-};
-
-let mouseX = canvas.width / 2, mouseY = canvas.height / 2;
-let camX = 0, camY = 0;
-
-canvas.addEventListener('mousemove', (e) => {
-  mouseX = e.clientX;
-  mouseY = e.clientY;
-});
-
-window.addEventListener('resize', () => {
-  canvas.width = window.innerWidth;
-  canvas.height = window.innerHeight;
-});
-
-let comidas = [];
-for (let i = 0; i < 200; i++) comidas.push(nuevaComida());
-
-function nuevaComida() {
-  return {
-    x: Math.random() * WORLD_W,
-    y: Math.random() * WORLD_H,
-    radius: 6,
-    color: `hsl(${Math.random() * 360}, 80%, 60%)`
+let miId = null, jugadoresRemotos = {}, enJuego = false;
+let frameCount = 0, lastFps = Date.now(), fps = 60;
+const SKINS = [
+  {color:'#e74c3c'},{color:'#3498db'},{color:'#2ecc71'},{color:'#f39c12'},
+  {color:'#9b59b6'},{color:'#1abc9c'},{color:'#e91e63'},{color:'#ff5722'},
+  {color:'#00bcd4'},{color:'#8bc34a'},{color:'#ff9800'},{color:'#607d8b'}
+];
+let skinSeleccionada = 0;
+const skinGrid = document.getElementById('skinGrid');
+SKINS.forEach((s,i) => {
+  const d = document.createElement('div');
+  d.className = 'skinCircle' + (i===0?' selected':'');
+  d.style.background = s.color;
+  d.onclick = () => {
+    document.querySelectorAll('.skinCircle').forEach(x=>x.classList.remove('selected'));
+    d.classList.add('selected'); skinSeleccionada=i;
+    jugador.color=SKINS[i].color;
+    document.getElementById('skinInput').value = 'Skin '+(i+1);
   };
-}
-
-const bots = [];
-for (let i = 0; i < 8; i++) bots.push(new Bot(WORLD_W, WORLD_H));
-
-socket.on('miId', (id) => { miId = id; });
-socket.on('comidas', (data) => { comidas = data; });
-socket.on('jugadores', (data) => { jugadoresRemotos = data; });
-socket.on('ranking', (data) => { actualizarRanking(data); });
-socket.on('muerto', (data) => { mostrarMuerto(data.killer); });
-socket.on('adminOk', () => {
-  isAdmin = true;
-  document.getElementById('adminCmds').style.display = 'block';
-  alert('✅ Eres admin!');
+  skinGrid.appendChild(d);
 });
-socket.on('adminFail', () => alert('❌ Contraseña incorrecta'));
-socket.on('comerComida', (data) => {
-  if (data.index >= 0 && data.index < comidas.length) {
-    comidas[data.index] = data.nueva;
-  }
-});
-socket.on('mensajeAdmin', (txt) => {
-  const el = document.getElementById('mensajeAdmin');
-  el.textContent = '📢 ' + txt;
-  el.style.display = 'block';
-  setTimeout(() => el.style.display = 'none', 4000);
-});
-
-function entrarJuego() {
-  const nombre = document.getElementById('inputNombre').value.trim() || 'Jugador';
-  jugador.nombre = nombre;
-  jugador.x = Math.random() * WORLD_W;
-  jugador.y = Math.random() * WORLD_H;
-  jugador.radius = 30;
-  document.getElementById('pantallaNombre').style.display = 'none';
-  enJuego = true;
-  socket.emit('unirse', { nombre });
+function abrirSkins(){ document.getElementById('skinModal').style.display='flex'; }
+function cerrarSkins(){ document.getElementById('skinModal').style.display='none'; }
+function mostrarRegistro(){ const b=document.getElementById('registroBox'); b.style.display=b.style.display==='none'?'block':'none'; }
+const jugador = { x:WORLD_W/2, y:WORLD_H/2, radius:30, color:SKINS[0].color, nombre:'Jugador', speed:3 };
+let mouseX=canvas.width/2, mouseY=canvas.height/2, camX=0, camY=0;
+let comidas = [];
+canvas.addEventListener('mousemove',e=>{mouseX=e.clientX;mouseY=e.clientY;});
+window.addEventListener('resize',()=>{canvas.width=window.innerWidth;canvas.height=window.innerHeight;});
+function nuevaComida(){return{x:Math.random()*WORLD_W,y:Math.random()*WORLD_H,radius:6,color:`hsl(${Math.random()*360},80%,60%)`};}
+for(let i=0;i<200;i++)comidas.push(nuevaComida());
+const bots=[];
+for(let i=0;i<8;i++)bots.push(new Bot(WORLD_W,WORLD_H));
+socket.on('miId',id=>miId=id);
+socket.on('comidas',data=>comidas=data);
+socket.on('jugadores',data=>{ jugadoresRemotos=data; document.getElementById('hudPlayers').textContent=Object.keys(data).length; });
+socket.on('ranking',data=>actualizarRanking(data));
+socket.on('muerto',data=>mostrarMuerto(data.killer));
+socket.on('adminOk',()=>{document.getElementById('adminCmds').style.display='block';alert('✅ Eres admin!');});
+socket.on('adminFail',()=>alert('❌ Contraseña incorrecta'));
+socket.on('comerComida',data=>{if(data.index>=0&&data.index<comidas.length)comidas[data.index]=data.nueva;});
+socket.on('mensajeAdmin',txt=>{const el=document.getElementById('mensajeAdmin');el.textContent='📢 '+txt;el.style.display='block';setTimeout(()=>el.style.display='none',4000);});
+const usuarios={};
+function registrarse(){
+  const email=document.getElementById('regEmail').value.trim();
+  const user=document.getElementById('regUser').value.trim();
+  const pass=document.getElementById('regPass').value;
+  const msg=document.getElementById('regMsg');
+  if(!email||!user||!pass){msg.textContent='Rellena todos los campos';return;}
+  if(usuarios[email]){msg.textContent='Correo ya registrado';return;}
+  usuarios[email]={user,pass};
+  msg.className='msgOk';msg.textContent='✅ Cuenta creada!';
+  setTimeout(()=>{ document.getElementById('registroBox').style.display='none'; },1500);
 }
-
-function mostrarMuerto(killer) {
-  enJuego = false;
-  const el = document.getElementById('pantallaFin');
-  document.getElementById('textoKiller').textContent = killer ? 'Te comió: ' + killer : '';
-  el.style.display = 'flex';
+function iniciarSesion(){
+  const email=document.getElementById('loginEmail').value.trim();
+  const pass=document.getElementById('loginPass').value;
+  const msg=document.getElementById('loginMsg');
+  if(!email||!pass){msg.textContent='Rellena los campos';return;}
+  if(!usuarios[email]||usuarios[email].pass!==pass){msg.textContent='❌ Datos incorrectos';return;}
+  document.getElementById('inputNombre').value=usuarios[email].user;
+  msg.className='msgOk';msg.textContent='✅ Sesión iniciada!';
+  setTimeout(()=>entrarJuego(),800);
 }
-
-function reiniciar() {
-  document.getElementById('pantallaFin').style.display = 'none';
-  jugador.radius = 30;
-  jugador.x = Math.random() * WORLD_W;
-  jugador.y = Math.random() * WORLD_H;
-  enJuego = true;
-  socket.emit('unirse', { nombre: jugador.nombre });
+function entrarJuego(){
+  const nombre=document.getElementById('inputNombre').value.trim()||'Jugador';
+  jugador.nombre=nombre;jugador.color=SKINS[skinSeleccionada].color;
+  jugador.x=Math.random()*WORLD_W;jugador.y=Math.random()*WORLD_H;jugador.radius=30;
+  document.getElementById('pantallaLogin').style.display='none';
+  document.getElementById('ranking').style.display='block';
+  document.getElementById('hudTopLeft').style.display='block';
+  document.getElementById('hudStats').style.display='block';
+  document.getElementById('bottomBar').style.display='flex';
+  document.getElementById('chatBox').style.display='block';
+  document.getElementById('btnAdmin').style.display='block';
+  enJuego=true;
+  socket.emit('unirse',{nombre,color:jugador.color});
 }
-
-function actualizarRanking(data) {
-  const lista = document.getElementById('listaRanking');
-  lista.innerHTML = data.map(j =>
-    '<li class="' + (j.nombre === jugador.nombre ? 'yo' : '') + '">' + j.nombre + ' <b>' + j.radius + '</b></li>'
-  ).join('');
+function mostrarMuerto(killer){
+  enJuego=false;
+  document.getElementById('textoKiller').textContent=killer?'Te comió: '+killer:'';
+  document.getElementById('pantallaFin').style.display='flex';
 }
-
-function toggleAdmin() {
-  const p = document.getElementById('adminPanel');
-  p.style.display = p.style.display === 'none' ? 'block' : 'none';
+function reiniciar(){
+  document.getElementById('pantallaFin').style.display='none';
+  jugador.radius=30;jugador.x=Math.random()*WORLD_W;jugador.y=Math.random()*WORLD_H;
+  enJuego=true;socket.emit('unirse',{nombre:jugador.nombre,color:jugador.color});
 }
-
-function adminLogin() {
-  socket.emit('adminLogin', document.getElementById('adminPass').value);
+function actualizarRanking(data){
+  document.getElementById('listaRanking').innerHTML=data.map(j=>'<li class="'+(j.nombre===jugador.nombre?'yo':'')+'">'+j.nombre+' <b>'+Math.floor(j.radius)+'</b></li>').join('');
 }
-
-function adminCmd(tipo) {
-  socket.emit('adminCmd', { tipo });
-  if (tipo === 'gigante') jugador.radius = 300;
-}
-
-function adminMensaje() {
-  const txt = document.getElementById('adminMsg').value;
-  if (txt) socket.emit('adminCmd', { tipo: 'mensaje', texto: txt });
-}
-
-function dibujarCelula(obj, nombre) {
-  ctx.beginPath();
-  ctx.arc(obj.x - camX, obj.y - camY, obj.radius, 0, Math.PI * 2);
-  ctx.fillStyle = obj.color;
-  ctx.fill();
-  ctx.strokeStyle = 'rgba(255,255,255,0.3)';
-  ctx.lineWidth = 2;
-  ctx.stroke();
+function toggleAdmin(){const p=document.getElementById('adminPanel');p.style.display=p.style.display==='none'?'block':'none';}
+function adminLogin(){socket.emit('adminLogin',document.getElementById('adminPass').value);}
+function adminCmd(tipo){socket.emit('adminCmd',{tipo});if(tipo==='gigante')jugador.radius=300;}
+function adminMensaje(){const txt=document.getElementById('adminMsg').value;if(txt)socket.emit('adminCmd',{tipo:'mensaje',texto:txt});}
+function dibujarCelula(obj,nombre){
+  ctx.beginPath();ctx.arc(obj.x-camX,obj.y-camY,obj.radius,0,Math.PI*2);
+  ctx.fillStyle=obj.color;ctx.fill();
+  if(document.getElementById('optBorde')&&document.getElementById('optBorde').checked){ctx.strokeStyle='rgba(255,255,255,0.25)';ctx.lineWidth=2;ctx.stroke();}
   ctx.closePath();
-  if (nombre && obj.radius > 15) {
-    ctx.fillStyle = '#fff';
-    ctx.font = 'bold ' + Math.min(obj.radius * 0.5, 18) + 'px Arial';
-    ctx.textAlign = 'center';
-    ctx.fillText(nombre, obj.x - camX, obj.y - camY + 5);
-  }
+  if(nombre&&obj.radius>15){ctx.fillStyle='#fff';ctx.font='bold '+Math.min(obj.radius*0.5,18)+'px Arial';ctx.textAlign='center';ctx.fillText(nombre,obj.x-camX,obj.y-camY+5);}
 }
-
-function dibujarGrid() {
-  ctx.strokeStyle = 'rgba(255,255,255,0.05)';
-  ctx.lineWidth = 1;
-  const tam = 100;
-  const offX = camX % tam;
-  const offY = camY % tam;
-  for (let x = -offX; x < canvas.width; x += tam) {
-    ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke();
-  }
-  for (let y = -offY; y < canvas.height; y += tam) {
-    ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke();
-  }
+function dibujarGrid(){
+  const dark=document.getElementById('optOscuro')&&document.getElementById('optOscuro').checked;
+  ctx.fillStyle=dark?'#111':'#e8e8d0';ctx.fillRect(0,0,canvas.width,canvas.height);
+  ctx.strokeStyle=dark?'rgba(255,255,255,0.04)':'rgba(0,0,0,0.08)';ctx.lineWidth=1;
+  const tam=50;
+  for(let x=-(camX%tam);x<canvas.width;x+=tam){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,canvas.height);ctx.stroke();}
+  for(let y=-(camY%tam);y<canvas.height;y+=tam){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(canvas.width,y);ctx.stroke();}
 }
-
-function moverJugador() {
-  if (!enJuego) return;
-  let dx = mouseX - canvas.width / 2;
-  let dy = mouseY - canvas.height / 2;
-  let dist = Math.sqrt(dx * dx + dy * dy);
-  const speed = jugador.speed * (30 / Math.max(jugador.radius, 30));
-  if (dist > 10) {
-    jugador.x += (dx / dist) * speed * 2;
-    jugador.y += (dy / dist) * speed * 2;
-  }
-  jugador.x = Math.max(0, Math.min(WORLD_W, jugador.x));
-  jugador.y = Math.max(0, Math.min(WORLD_H, jugador.y));
+function actualizarMinimap(){
+  const dot=document.getElementById('minimapDot');
+  dot.style.left=(jugador.x/WORLD_W)*80+'px';
+  dot.style.top=(jugador.y/WORLD_H)*80+'px';
 }
-
-function comerComidaLocal() {
-  for (let i = comidas.length - 1; i >= 0; i--) {
-    const c = comidas[i];
-    if (Math.hypot(jugador.x - c.x, jugador.y - c.y) < jugador.radius) {
-      comidas[i] = nuevaComida();
-      jugador.radius += 0.8;
-    }
-  }
-}
-
-function verificarComerBots() {
-  for (let i = bots.length - 1; i >= 0; i--) {
-    const bot = bots[i];
-    const dist = Math.hypot(jugador.x - bot.x, jugador.y - bot.y);
-    if (dist < jugador.radius && jugador.radius > bot.radius * 1.1) {
-      jugador.radius = Math.sqrt(jugador.radius ** 2 + bot.radius ** 2);
-      bots[i] = new Bot(WORLD_W, WORLD_H);
-    } else if (dist < bot.radius && bot.radius > jugador.radius * 1.1) {
-      mostrarMuerto(bot.nombre);
-    }
-  }
-}
-
-function gameLoop() {
-  ctx.fillStyle = '#111';
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
+function gameLoop(){
+  frameCount++;
+  const now=Date.now();
+  if(now-lastFps>=1000){fps=frameCount;frameCount=0;lastFps=now;document.getElementById('hudFps').textContent=fps;}
   dibujarGrid();
-
-  if (enJuego) {
-    moverJugador();
-    comerComidaLocal();
-    verificarComerBots();
-    camX = jugador.x - canvas.width / 2;
-    camY = jugador.y - canvas.height / 2;
-    document.getElementById('hudSize').textContent = Math.floor(jugador.radius);
-    if (miId) {
-      socket.emit('mover', { x: jugador.x, y: jugador.y, radius: jugador.radius });
-    }
+  if(enJuego){
+    let dx=mouseX-canvas.width/2,dy=mouseY-canvas.height/2,dist=Math.sqrt(dx*dx+dy*dy);
+    const speed=jugador.speed*(30/Math.max(jugador.radius,30));
+    if(dist>10){jugador.x+=(dx/dist)*speed*2;jugador.y+=(dy/dist)*speed*2;}
+    jugador.x=Math.max(0,Math.min(WORLD_W,jugador.x));jugador.y=Math.max(0,Math.min(WORLD_H,jugador.y));
+    camX=jugador.x-canvas.width/2;camY=jugador.y-canvas.height/2;
+    document.getElementById('hudSize').textContent=Math.floor(jugador.radius);
+    document.getElementById('hudScore').textContent=Math.floor(jugador.radius*10);
+    document.getElementById('hudMax').textContent=Math.floor(jugador.radius*10);
+    actualizarMinimap();
+    for(let i=comidas.length-1;i>=0;i--){if(Math.hypot(jugador.x-comidas[i].x,jugador.y-comidas[i].y)<jugador.radius){comidas[i]=nuevaComida();jugador.radius+=0.8;}}
+    for(let i=bots.length-1;i>=0;i--){const bot=bots[i],d=Math.hypot(jugador.x-bot.x,jugador.y-bot.y);if(d<jugador.radius&&jugador.radius>bot.radius*1.1){jugador.radius=Math.sqrt(jugador.radius**2+bot.radius**2);bots[i]=new Bot(WORLD_W,WORLD_H);}else if(d<bot.radius&&bot.radius>jugador.radius*1.1)mostrarMuerto(bot.nombre);}
+    if(miId)socket.emit('mover',{x:jugador.x,y:jugador.y,radius:jugador.radius});
   }
-
-  for (let c of comidas) {
-    if (c.x - camX > -20 && c.x - camX < canvas.width + 20 &&
-        c.y - camY > -20 && c.y - camY < canvas.height + 20) {
-      dibujarCelula(c);
-    }
-  }
-
-  for (let bot of bots) {
-    bot.decidir(comidas, [...bots, jugador]);
-    bot.mover();
-    bot.comerComida(comidas);
-    dibujarCelula(bot, bot.nombre);
-  }
-
-  for (let id in jugadoresRemotos) {
-    if (id !== miId) {
-      const j = jugadoresRemotos[id];
-      dibujarCelula(j, j.nombre);
-    }
-  }
-
-  if (enJuego) dibujarCelula(jugador, jugador.nombre);
-
+  for(let c of comidas){if(c.x-camX>-20&&c.x-camX<canvas.width+20&&c.y-camY>-20&&c.y-camY<canvas.height+20)dibujarCelula(c);}
+  for(let bot of bots){bot.decidir(comidas,[...bots,jugador]);bot.mover();bot.comerComida(comidas);dibujarCelula(bot,bot.nombre);}
+  for(let id in jugadoresRemotos){if(id!==miId){const j=jugadoresRemotos[id];dibujarCelula(j,j.nombre);}}
+  if(enJuego)dibujarCelula(jugador,jugador.nombre);
   requestAnimationFrame(gameLoop);
 }
-
 gameLoop();
 </script>
 </body>
