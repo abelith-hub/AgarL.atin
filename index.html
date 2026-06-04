@@ -331,9 +331,22 @@ document.addEventListener('keydown', e=>{
   // Espacio = dividir
   if(e.code==='Space'){
     e.preventDefault();
-    if(jugador.radius > 45){
-      jugador.radius = Math.max(30, jugador.radius * 0.65);
-      socket.emit('dividir');
+    if(jugador.radius >= 60){
+      const nuevaRadius = jugador.radius / Math.sqrt(2);
+      jugador.radius = nuevaRadius;
+      const dx = mouseX - canvas.width/2;
+      const dy = mouseY - canvas.height/2;
+      const dist = Math.sqrt(dx*dx+dy*dy) || 1;
+      bolasExtra.push({
+        x: jugador.x + (dx/dist)*nuevaRadius*1.5,
+        y: jugador.y + (dy/dist)*nuevaRadius*1.5,
+        radius: nuevaRadius,
+        color: jugador.color,
+        nombre: jugador.nombre,
+        velX: (dx/dist)*10,
+        velY: (dy/dist)*10,
+        vida: 300
+      });
     }
     return;
   }
@@ -625,6 +638,7 @@ function nuevaComida(){ return{x:Math.random()*WORLD_W, y:Math.random()*WORLD_H,
 for(let i=0;i<300;i++) comidas.push(nuevaComida());
 const bots=[];
 for(let i=0;i<10;i++) bots.push(new Bot(WORLD_W,WORLD_H));
+const bolasExtra=[];
 
 function gameLoop(){
   frameCount++;
@@ -715,6 +729,20 @@ function gameLoop(){
   // Dibujar jugador
   if(enJuego) dibujarCelula(jugador,jugador.nombre);
 
+  // Dibujar y mover bolas extra (divisiones)
+  for(let i=bolasExtra.length-1;i>=0;i--){
+    const b=bolasExtra[i];
+    b.x+=b.velX; b.y+=b.velY;
+    b.velX*=0.92; b.velY*=0.92;
+    b.x=Math.max(b.radius,Math.min(WORLD_W-b.radius,b.x));
+    b.y=Math.max(b.radius,Math.min(WORLD_H-b.radius,b.y));
+    dibujarCelula(b,b.nombre);
+    b.vida--;
+    if(b.vida<=0){
+      jugador.radius=Math.sqrt(jugador.radius**2+b.radius**2);
+      bolasExtra.splice(i,1);
+    }
+  }
   ctx.restore();
   requestAnimationFrame(gameLoop);
 }
