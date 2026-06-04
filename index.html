@@ -6,25 +6,28 @@
   <title>AgarL</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { background: #1a1a2e; overflow: hidden; font-family: Arial, sans-serif; color: #fff; }
+    body { background: #111; overflow: hidden; font-family: Arial, sans-serif; color: #fff; }
     canvas { display: block; position: fixed; top: 0; left: 0; z-index: 0; }
     #hudTopLeft { position: fixed; top: 8px; left: 8px; color: #fff; font-size: 13px; z-index: 50; display: none; line-height: 1.6; text-shadow: 1px 1px 2px #000; }
-    #minimap { width: 80px; height: 80px; background: rgba(0,0,0,0.5); border: 1px solid #555; margin-top: 4px; position: relative; }
+    #minimap { width: 80px; height: 80px; background: rgba(0,0,0,0.5); border: 1px solid #555; margin-top: 4px; position: relative; overflow: hidden; }
     #minimapDot { position: absolute; width: 6px; height: 6px; border-radius: 50%; background: #4af; transform: translate(-50%,-50%); }
-    #goldHud { position: fixed; top: 8px; left: 8px; margin-top: 130px; color: #ffd700; font-size: 14px; font-weight: bold; z-index: 50; display: none; text-shadow: 1px 1px 2px #000; }
-    #timerBar { position: fixed; top: 8px; left: 50%; transform: translateX(-50%); z-index: 50; display: none; text-align: center; }
+    #goldHud { position: fixed; top: 140px; left: 8px; color: #ffd700; font-size: 14px; font-weight: bold; z-index: 50; display: none; text-shadow: 1px 1px 2px #000; }
+    #timerBar { position: fixed; top: 8px; left: 50%; transform: translateX(-50%); z-index: 50; display: none; text-align: center; pointer-events: none; }
     #timerSala { color: #4af; font-size: 13px; font-weight: bold; }
-    #timerTop { font-size: 14px; font-weight: bold; color: #fff; background: rgba(0,0,0,0.6); padding: 2px 14px; border-radius: 4px; }
-    #timerTop.rojo { color: #f44; }
+    #timerTop { font-size: 16px; font-weight: bold; color: #fff; background: rgba(0,0,0,0.6); padding: 3px 16px; border-radius: 4px; }
+    #timerTop.rojo { color: #f44; animation: parpadeo 0.5s infinite; }
+    @keyframes parpadeo { 0%,100%{opacity:1} 50%{opacity:0.5} }
     #timerPrize { color: #ffd700; font-size: 13px; font-weight: bold; }
-    #ranking { position: fixed; top: 8px; right: 8px; background: rgba(0,0,0,0.5); border-radius: 6px; padding: 8px 14px; min-width: 150px; z-index: 50; display: none; font-size: 12px; }
+    #ranking { position: fixed; top: 8px; right: 8px; background: rgba(0,0,0,0.55); border-radius: 6px; padding: 8px 14px; min-width: 150px; z-index: 50; display: none; font-size: 12px; }
     #ranking h3 { color: #ffd700; margin-bottom: 5px; font-size: 12px; }
-    #ranking ol { padding-left: 16px; line-height: 1.8; }
+    #ranking ol { list-style: none; padding: 0; line-height: 1.9; }
+    #ranking li { color: #ddd; }
     #ranking li.yo { color: #4af; font-weight: bold; }
-    #chatBox { position: fixed; bottom: 30px; left: 8px; z-index: 50; display: none; font-size: 12px; width: 220px; }
-    #chatMsgs { max-height: 80px; overflow: hidden; }
-    #chatInput { width: 100%; background: rgba(0,0,0,0.6); border: 1px solid #555; color: #fff; font-size: 12px; padding: 3px 6px; outline: none; display: none; }
-    #hudStats { position: fixed; bottom: 8px; right: 8px; color: #ccc; font-size: 11px; z-index: 50; display: none; text-align: right; line-height: 1.7; text-shadow: 1px 1px 2px #000; }
+    #chatBox { position: fixed; bottom: 30px; left: 8px; z-index: 50; display: none; font-size: 12px; width: 240px; }
+    #chatMsgs { max-height: 90px; overflow: hidden; }
+    #chatMsgs div { color: #fff; text-shadow: 1px 1px 2px #000; margin: 1px 0; }
+    #chatInput { width: 100%; background: rgba(0,0,0,0.7); border: 1px solid #555; color: #fff; font-size: 12px; padding: 4px 8px; outline: none; display: none; border-radius: 3px; }
+    #hudStats { position: fixed; bottom: 30px; right: 8px; color: #ccc; font-size: 11px; z-index: 50; display: none; text-align: right; line-height: 1.7; text-shadow: 1px 1px 2px #000; }
     #bottomBar { position: fixed; bottom: 0; left: 0; right: 0; background: rgba(0,0,0,0.7); height: 26px; display: none; align-items: center; padding: 0 10px; font-size: 11px; color: #aaa; z-index: 50; gap: 12px; }
     .barBtn { background: #333; border: none; color: #fff; padding: 2px 8px; border-radius: 3px; cursor: pointer; font-size: 11px; }
     #pantallaLogin { position: fixed; inset: 0; display: flex; z-index: 100; }
@@ -33,11 +36,11 @@
     #loginLeft a:hover { text-decoration: underline; }
     #loginLeft hr { border-color: #333; margin: 8px 0; }
     #loginCenter { flex: 1; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.3); }
-    #loginBox { background: rgba(10,10,25,0.97); border-radius: 8px; padding: 24px 28px; width: 360px; text-align: center; border: 1px solid #2a2a4a; }
-    #loginLogo { font-size: 3em; font-weight: 900; letter-spacing: 3px; color: #fff; font-family: 'Arial Black', sans-serif; text-shadow: 2px 2px 0 #000, -1px -1px 0 #555; margin-bottom: 16px; display: block; }
+    #loginBox { background: rgba(10,10,25,0.97); border-radius: 8px; padding: 24px 28px; width: 360px; text-align: center; border: 1px solid #2a2a4a; max-height: 95vh; overflow-y: auto; }
+    #loginLogo { font-size: 3em; font-weight: 900; letter-spacing: 3px; color: #fff; font-family: 'Arial Black', sans-serif; text-shadow: 2px 2px 0 #000; margin-bottom: 16px; display: block; }
     .inputRow { display: flex; gap: 6px; margin: 5px 0; }
     .inputRow input { flex: 1; }
-    .inputRow select { width: 100px; }
+    .inputRow select { width: 110px; }
     #loginBox input, #loginBox select, #loginRight input { width: 100%; padding: 8px 10px; margin: 4px 0; border-radius: 4px; border: 1px solid #444; background: #111; color: #fff; font-size: 13px; outline: none; }
     #loginBox input:focus, #loginRight input:focus { border-color: #4af; }
     #skinRow { display: flex; gap: 6px; margin: 6px 0; align-items: center; }
@@ -47,6 +50,7 @@
     .btnJugar.azul { background: #2196f3; color: #fff; }
     .btnJugar.azul:hover { background: #1976d2; }
     .btnJugar.amarillo { background: #f59e0b; color: #000; }
+    .btnJugar.amarillo:hover { background: #d97706; }
     .opciones { display: flex; flex-wrap: wrap; gap: 5px; font-size: 11px; margin: 6px 0; justify-content: center; }
     .opciones label { display: flex; align-items: center; gap: 3px; cursor: pointer; color: #ccc; }
     .flags { display: flex; gap: 5px; justify-content: center; margin-top: 8px; font-size: 18px; cursor: pointer; }
@@ -60,12 +64,12 @@
     #pantallaFin h2 { color: #f44; font-size: 2.2em; margin-bottom: 10px; }
     #pantallaFin button { padding: 11px 36px; font-size: 1em; border-radius: 6px; background: #2196f3; color: #fff; border: none; cursor: pointer; font-weight: bold; margin-top: 10px; }
     #pantallaGanador { position: fixed; inset: 0; background: rgba(0,0,0,0.9); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 100; }
-    #pantallaGanador h1 { color: #ffd700; font-size: 3em; margin-bottom: 10px; }
-    #pantallaGanador p { color: #fff; font-size: 1.3em; margin: 5px 0; }
-    #countdownGanador { color: #4af; font-size: 2em; margin-top: 20px; }
+    #pantallaGanador h1 { color: #ffd700; font-size: 3em; margin-bottom: 10px; text-shadow: 0 0 20px #ffd700; }
+    #countdownGanador { color: #4af; font-size: 2.5em; margin-top: 20px; font-weight: bold; }
     #adminPanel { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.95); border: 1px solid #f90; border-radius: 8px; padding: 14px; z-index: 200; display: none; min-width: 220px; max-height: 80vh; overflow-y: auto; }
     #adminPanel h3 { color: #f90; margin-bottom: 8px; font-size: 13px; }
     #adminPanel button { display: block; width: 100%; margin: 4px 0; padding: 7px; border-radius: 4px; border: none; background: #333; color: #fff; cursor: pointer; font-size: 12px; }
+    #adminPanel button:hover { background: #444; }
     #adminPanel input { width: 100%; padding: 5px; border-radius: 4px; border: 1px solid #555; background: #222; color: #fff; margin: 4px 0; font-size: 12px; }
     #btnAdmin { position: fixed; bottom: 30px; right: 8px; background: #f90; color: #000; border: none; padding: 5px 12px; border-radius: 5px; cursor: pointer; font-weight: bold; z-index: 50; font-size: 11px; display: none; }
     #mensajeAdmin { position: fixed; top: 50%; left: 50%; transform: translate(-50%,-50%); background: rgba(255,150,0,0.95); color: #000; padding: 18px 36px; border-radius: 10px; font-size: 1.3em; font-weight: bold; z-index: 300; display: none; }
@@ -76,12 +80,14 @@
     .skinCircle { width: 44px; height: 44px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; }
     .skinCircle:hover, .skinCircle.selected { border-color: #4af; }
     .skinModalClose { margin-top: 12px; padding: 7px 20px; background: #333; border: none; color: #fff; border-radius: 5px; cursor: pointer; }
-    .floatNum { position: absolute; font-weight: bold; font-size: 14px; pointer-events: none; z-index: 60; animation: floatUp 1s ease-out forwards; }
-    @keyframes floatUp { 0%{opacity:1;transform:translateY(0)} 100%{opacity:0;transform:translateY(-50px)} }
+    .floatNum { position: fixed; font-weight: bold; font-size: 15px; pointer-events: none; z-index: 60; animation: floatUp 1s ease-out forwards; }
+    @keyframes floatUp { 0%{opacity:1;transform:translateY(0)} 100%{opacity:0;transform:translateY(-60px)} }
+    #escHint { position: fixed; top: 8px; left: 50%; transform: translateX(-50%); margin-top: 70px; color: rgba(255,255,255,0.4); font-size: 11px; z-index: 50; display: none; pointer-events: none; }
   </style>
 </head>
 <body>
 <canvas id="gameCanvas"></canvas>
+
 <div id="hudTopLeft">
   Puntuación: <span id="hudScore">0</span><br>
   Max: <span id="hudMax">0</span><br>
@@ -95,12 +101,13 @@
 <div id="timerBar">
   <div id="timerSala">FFA-1</div>
   <div id="timerTop">10:00</div>
-  <div id="timerPrize">Prize: 0</div>
+  <div id="timerPrize">Prize: 1000</div>
 </div>
+<div id="escHint">ESC = volver al menú</div>
 <div id="ranking"><h3>🏆 Ranking</h3><ol id="listaRanking"></ol></div>
 <div id="chatBox">
   <div id="chatMsgs"></div>
-  <input id="chatInput" placeholder="¡Pulsa Enter para escribir!" />
+  <input id="chatInput" placeholder="Escribe y pulsa Enter..." />
 </div>
 <div id="hudStats">
   Ping: <span id="hudPing">1</span><br>
@@ -113,14 +120,16 @@
   <span>✅Todos</span>
   <span>■Colocar</span>
 </div>
+
 <div id="pantallaLogin">
   <div id="loginLeft">
     <a href="#">Salón de la Fama</a>
     <a href="#">Mejores Jugadores</a>
     <a href="#">Mejores Clanes</a>
     <a href="#">Últimos Archivos</a>
-    <a href="#">How to play, Últimas actualizaciones</a>
-    <a href="#">Nombre de búsqueda / Premium</a>
+    <a href="#">How to play</a>
+    <a href="#">Últimas actualizaciones</a>
+    <a href="#">Búsqueda de nombres</a>
     <hr>
     <a href="#">Compra-venta premium</a>
     <a href="#">Comprar Premium!</a>
@@ -132,7 +141,9 @@
       <div class="inputRow">
         <input type="text" id="inputNombre" placeholder="Nombre" maxlength="16" />
         <select id="serverSelect">
-          <option>FFA-1</option><option>FFA-2</option><option>FFA-3</option>
+          <option>FFA-1</option><option>FFA-2</option><option>FFA-3</option><option>FFA-4</option>
+          <option>FFA-5</option><option>FFA-6</option><option>FFA-7</option><option>FFA-8</option>
+          <option>FFA-9</option><option>FFA-10</option><option>FFA-11</option><option>FFA-12</option>
           <option>CFFA-1</option><option>CFFA-2</option>
           <option>VS-FFA</option><option>VS-GSZ</option><option>GSZ-1</option>
         </select>
@@ -148,16 +159,17 @@
       </div>
       <div class="opciones">
         <label><input type="checkbox" id="optNombre" checked> Mostrar nombre</label>
-        <label><input type="checkbox" id="optOscuro" checked> Oscuro</label>
+        <label><input type="checkbox" id="optOscuro" checked> Fondo oscuro</label>
         <label><input type="checkbox" id="optBorde" checked> Borde</label>
-        <label><input type="checkbox" id="optMacro" checked> Macro</label>
+        <label><input type="checkbox" id="optMacro" checked> Macro Z/X</label>
         <label><input type="checkbox" id="optPunt" checked> Puntuación</label>
+        <label><input type="checkbox" id="optZoom" checked> Zoom auto</label>
       </div>
       <div class="flags">🇹🇷 🇬🇧 🇪🇸 🇩🇪 🇷🇺</div>
-      <div style="font-size:10px;color:#666;margin-top:10px;line-height:1.5">
+      <div style="font-size:10px;color:#666;margin-top:10px;line-height:1.6">
         Espacio: dividir | W/E: expulsar masa<br>
-        Z: macro -10 gold | X: macro rápido -100 gold<br>
-        Rueda: zoom | Enter: chat | F: pantalla completa
+        Z: macro -10 gold | X: macro -100 gold<br>
+        Rueda: zoom | Enter: chat | ESC: menú
       </div>
     </div>
   </div>
@@ -182,18 +194,22 @@
     </div>
   </div>
 </div>
+
 <div id="pantallaFin">
   <h2>💀 ¡Te comieron!</h2>
-  <p id="textoKiller" style="color:#aaa;font-size:14px"></p>
+  <p id="textoKiller" style="color:#aaa;font-size:14px;margin:8px 0"></p>
   <button onclick="reiniciar()">Volver a jugar</button>
+  <button onclick="volverMenu()" style="background:#555;margin-top:6px">Cambiar sala</button>
 </div>
+
 <div id="pantallaGanador" style="display:none;flex-direction:column;align-items:center;justify-content:center;">
   <h1>🏆 ¡GANADOR!</h1>
-  <p id="ganadorNombre" style="font-size:2em;color:#ffd700"></p>
+  <p id="ganadorNombre" style="font-size:2em;color:#ffd700;margin:10px 0"></p>
   <p id="ganadorPrize" style="color:#4af;font-size:1.2em"></p>
   <div id="countdownGanador">30</div>
-  <p style="color:#aaa;font-size:0.9em">Nueva partida en...</p>
+  <p style="color:#aaa;font-size:0.9em;margin-top:5px">Nueva partida en...</p>
 </div>
+
 <button id="btnAdmin" onclick="toggleAdmin()">⚙ Admin</button>
 <div id="adminPanel">
   <h3>⚙ Panel Admin</h3>
@@ -214,10 +230,11 @@
     <button onclick="adminCmd('kickAll')">💀 Eliminar todos</button>
     <input id="adminMsg" placeholder="Mensaje a todos..." />
     <button onclick="adminMensaje()">📢 Enviar mensaje</button>
-    <button onclick="toggleAdmin()">Cerrar</button>
+    <button onclick="toggleAdmin()" style="background:#222;margin-top:8px">✕ Cerrar</button>
   </div>
 </div>
 <div id="mensajeAdmin"></div>
+
 <div id="skinModal">
   <div id="skinModalBox">
     <h3>Galería de Skins</h3>
@@ -225,6 +242,7 @@
     <button class="skinModalClose" onclick="cerrarSkins()">Cerrar</button>
   </div>
 </div>
+
 <script src="/socket.io/socket.io.js"></script>
 <script src="bot.js"></script>
 <script>
@@ -233,12 +251,13 @@ const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
-const WORLD_W = 4000, WORLD_H = 4000;
+
+const WORLD_W = 14142, WORLD_H = 14142;
 let miId = null, jugadoresRemotos = {}, enJuego = false;
 let frameCount = 0, lastFps = Date.now(), fps = 60;
-let zoomLevel = 1;
-let gold = 0, prize = 0;
-let timerSeg = 600; // 10 minutos
+let zoomLevel = 1, targetZoom = 1;
+let gold = 0, prize = 1000;
+let timerSeg = 600;
 let timerInterval = null;
 let chatAbierto = false;
 let maxScore = 0;
@@ -247,7 +266,8 @@ let maxScore = 0;
 const SKINS = [
   {color:'#e74c3c'},{color:'#3498db'},{color:'#2ecc71'},{color:'#f39c12'},
   {color:'#9b59b6'},{color:'#1abc9c'},{color:'#e91e63'},{color:'#ff5722'},
-  {color:'#00bcd4'},{color:'#8bc34a'},{color:'#ff9800'},{color:'#607d8b'}
+  {color:'#00bcd4'},{color:'#8bc34a'},{color:'#ff9800'},{color:'#607d8b'},
+  {color:'#f06292'},{color:'#aed581'},{color:'#4dd0e1'},{color:'#ffb74d'}
 ];
 let skinSeleccionada = 0;
 const skinGrid = document.getElementById('skinGrid');
@@ -263,30 +283,37 @@ SKINS.forEach((s,i) => {
   };
   skinGrid.appendChild(d);
 });
+
 function abrirSkins(){ document.getElementById('skinModal').style.display='flex'; }
 function cerrarSkins(){ document.getElementById('skinModal').style.display='none'; }
 function mostrarRegistro(){ const b=document.getElementById('registroBox'); b.style.display=b.style.display==='none'?'block':'none'; }
 
-const jugador = { x:WORLD_W/2, y:WORLD_H/2, radius:30, color:SKINS[0].color, nombre:'Jugador', speed:3 };
+const jugador = { x:WORLD_W/2, y:WORLD_H/2, radius:30, color:SKINS[0].color, nombre:'Jugador', speed:4 };
 let mouseX=canvas.width/2, mouseY=canvas.height/2, camX=0, camY=0;
 let comidas = [];
-canvas.addEventListener('mousemove',e=>{mouseX=e.clientX;mouseY=e.clientY;});
-window.addEventListener('resize',()=>{canvas.width=window.innerWidth;canvas.height=window.innerHeight;});
 
-// ZOOM con rueda
+canvas.addEventListener('mousemove',e=>{mouseX=e.clientX;mouseY=e.clientY;});
+window.addEventListener('resize',()=>{ canvas.width=window.innerWidth; canvas.height=window.innerHeight; });
+
+// ZOOM rueda del mouse
 canvas.addEventListener('wheel', e=>{
   e.preventDefault();
-  if(e.deltaY < 0) zoomLevel = Math.min(zoomLevel*1.1, 3);
-  else zoomLevel = Math.max(zoomLevel*0.9, 0.3);
+  if(e.deltaY < 0) targetZoom = Math.min(targetZoom*1.15, 4);
+  else targetZoom = Math.max(targetZoom*0.87, 0.2);
 },{passive:false});
 
 // TECLAS
 document.addEventListener('keydown', e=>{
+  // ESC = volver al menú
+  if(e.key==='Escape'){
+    if(enJuego) volverMenu();
+    return;
+  }
+
   if(!enJuego) return;
-  const k = e.key.toLowerCase();
-  
-  // Chat
-  if(k==='enter'){
+
+  // Chat con Enter
+  if(e.key==='Enter'){
     const ci = document.getElementById('chatInput');
     if(!chatAbierto){
       chatAbierto=true; ci.style.display='block'; ci.focus();
@@ -299,62 +326,81 @@ document.addEventListener('keydown', e=>{
   }
   if(chatAbierto) return;
 
-  // Dividir
+  const k = e.key.toLowerCase();
+
+  // Espacio = dividir
   if(e.code==='Space'){
     e.preventDefault();
-    if(jugador.radius > 40){
-      jugador.radius = jugador.radius * 0.7;
+    if(jugador.radius > 45){
+      jugador.radius = Math.max(30, jugador.radius * 0.65);
       socket.emit('dividir');
     }
+    return;
   }
-  // Expulsar poca masa
+
+  // W = expulsar poca masa
   if(k==='w'){
-    if(jugador.radius > 35) jugador.radius -= 3;
+    if(jugador.radius > 40){ jugador.radius -= 4; }
     socket.emit('expulsarMasa',{cantidad:'poca'});
+    return;
   }
-  // Expulsar toda la masa extra
+
+  // E = expulsar toda la masa extra
   if(k==='e'){
-    if(jugador.radius > 35) jugador.radius = Math.max(30, jugador.radius * 0.5);
+    if(jugador.radius > 35){ jugador.radius = Math.max(30, jugador.radius * 0.45); }
     socket.emit('expulsarMasa',{cantidad:'toda'});
+    return;
   }
-  // Macro Z - quita 10 gold
+
+  // Z = macro lento -10 gold
   if(k==='z'){
     if(!document.getElementById('optMacro').checked) return;
     if(gold >= 10){
       gold -= 10;
-      jugador.radius += 5;
+      jugador.radius += 6;
       document.getElementById('hudGold').textContent = gold;
-      mostrarNumFlotante('-10', '#ffd700');
+      mostrarNumFlotante('-10', '#ffd700', true);
+    } else {
+      mostrarNumFlotante('Sin gold!', '#f44', false);
     }
+    return;
   }
-  // Macro X - quita 100 gold
+
+  // X = macro rápido -100 gold
   if(k==='x'){
     if(!document.getElementById('optMacro').checked) return;
     if(gold >= 100){
       gold -= 100;
-      jugador.radius += 30;
+      jugador.radius += 40;
       document.getElementById('hudGold').textContent = gold;
-      mostrarNumFlotante('-100', '#f90');
+      mostrarNumFlotante('-100', '#f90', true);
+    } else {
+      mostrarNumFlotante('Sin gold!', '#f44', false);
     }
+    return;
   }
-  // Zoom manual
-  if(k==='z' && e.shiftKey) zoomLevel = Math.min(zoomLevel*1.2, 3);
-  if(k==='x' && e.shiftKey) zoomLevel = Math.max(zoomLevel*0.8, 0.3);
-  // Pantalla completa
+
+  // F = pantalla completa
   if(k==='f'){
     if(!document.fullscreenElement) document.documentElement.requestFullscreen();
     else document.exitFullscreen();
+    return;
   }
 });
 
-// Números flotantes
-function mostrarNumFlotante(texto, color){
+function mostrarNumFlotante(texto, color, enCanvas){
   const el = document.createElement('div');
   el.className = 'floatNum';
   el.textContent = texto;
   el.style.color = color;
-  el.style.left = (canvas.width/2 - 30 + Math.random()*60) + 'px';
-  el.style.top = (canvas.height/2 - 60) + 'px';
+  el.style.fontSize = '15px';
+  if(enCanvas){
+    el.style.left = (canvas.width/2 + (Math.random()-0.5)*80) + 'px';
+    el.style.top = (canvas.height/2 - 40) + 'px';
+  } else {
+    el.style.left = (canvas.width/2 - 40) + 'px';
+    el.style.top = (canvas.height/2) + 'px';
+  }
   document.body.appendChild(el);
   setTimeout(()=>el.remove(), 1000);
 }
@@ -367,9 +413,8 @@ function iniciarTimer(){
     timerSeg--;
     const m = Math.floor(timerSeg/60);
     const s = timerSeg%60;
-    const txt = m+':'+(s<10?'0':'')+s;
     const el = document.getElementById('timerTop');
-    el.textContent = txt;
+    el.textContent = m+':'+(s<10?'0':'')+s;
     el.className = timerSeg < 60 ? 'rojo' : '';
     if(timerSeg <= 0){ clearInterval(timerInterval); mostrarGanador(); }
   }, 1000);
@@ -377,10 +422,10 @@ function iniciarTimer(){
 
 function mostrarGanador(){
   enJuego = false;
-  const top = Object.values(jugadoresRemotos).sort((a,b)=>b.radius-a.radius)[0];
-  const ganador = top ? top.nombre : jugador.nombre;
-  document.getElementById('ganadorNombre').textContent = ganador;
-  document.getElementById('ganadorPrize').textContent = 'Premio: '+prize+' gold';
+  const jugsList = Object.values(jugadoresRemotos).sort((a,b)=>b.radius-a.radius);
+  const ganador = jugsList.length > 0 ? jugsList[0].nombre : jugador.nombre;
+  document.getElementById('ganadorNombre').textContent = '🥇 ' + ganador;
+  document.getElementById('ganadorPrize').textContent = 'Premio: +'+prize+' gold';
   document.getElementById('pantallaGanador').style.display = 'flex';
   let cd = 30;
   const cdEl = document.getElementById('countdownGanador');
@@ -391,31 +436,43 @@ function mostrarGanador(){
   },1000);
 }
 
-// Socket events
+function volverMenu(){
+  enJuego = false;
+  if(timerInterval) clearInterval(timerInterval);
+  socket.emit('salirSala');
+  // Ocultar HUD
+  ['ranking','hudTopLeft','goldHud','timerBar','hudStats','bottomBar','chatBox','btnAdmin','escHint'].forEach(id=>{
+    document.getElementById(id).style.display='none';
+  });
+  document.getElementById('pantallaFin').style.display='none';
+  document.getElementById('pantallaGanador').style.display='none';
+  document.getElementById('pantallaLogin').style.display='flex';
+}
+
+// SOCKET
 socket.on('miId',id=>miId=id);
 socket.on('comidas',data=>comidas=data);
 socket.on('jugadores',data=>{ jugadoresRemotos=data; document.getElementById('hudPlayers').textContent=Object.keys(data).length; });
 socket.on('ranking',data=>actualizarRanking(data));
 socket.on('muerto',data=>mostrarMuerto(data.killer));
-socket.on('adminOk',()=>{document.getElementById('adminCmds').style.display='block';alert('✅ Eres admin!');});
+socket.on('adminOk',()=>{ document.getElementById('adminCmds').style.display='block'; alert('✅ Eres admin!'); });
 socket.on('adminFail',()=>alert('❌ Contraseña incorrecta'));
-socket.on('comerComida',data=>{if(data.index>=0&&data.index<comidas.length)comidas[data.index]=data.nueva;});
-socket.on('mensajeAdmin',txt=>{const el=document.getElementById('mensajeAdmin');el.textContent='📢 '+txt;el.style.display='block';setTimeout(()=>el.style.display='none',4000);});
+socket.on('comerComida',data=>{ if(data.index>=0&&data.index<comidas.length) comidas[data.index]=data.nueva; });
+socket.on('mensajeAdmin',txt=>{ const el=document.getElementById('mensajeAdmin'); el.textContent='📢 '+txt; el.style.display='block'; setTimeout(()=>el.style.display='none',4000); });
 socket.on('chat',data=>{
-  const msgs = document.getElementById('chatMsgs');
-  const d = document.createElement('div');
-  d.style.cssText='color:#fff;text-shadow:1px 1px 2px #000;font-size:12px';
-  d.textContent = data.nombre+': '+data.msg;
+  const msgs=document.getElementById('chatMsgs');
+  const d=document.createElement('div');
+  d.textContent=data.nombre+': '+data.msg;
   msgs.appendChild(d);
-  if(msgs.children.length>5) msgs.removeChild(msgs.firstChild);
+  while(msgs.children.length>6) msgs.removeChild(msgs.firstChild);
 });
-socket.on('darOro', data=>{
-  gold += data.cantidad;
-  document.getElementById('hudGold').textContent = gold;
-  mostrarNumFlotante('+'+data.cantidad+' gold', '#ffd700');
+socket.on('darOro',data=>{
+  gold+=data.cantidad;
+  document.getElementById('hudGold').textContent=gold;
+  mostrarNumFlotante('+'+data.cantidad+' gold','#ffd700',true);
 });
 
-// Login
+// LOGIN
 async function registrarse(){
   const email=document.getElementById('regEmail').value.trim();
   const user=document.getElementById('regUser').value.trim();
@@ -431,6 +488,7 @@ async function registrarse(){
   document.getElementById('inputNombre').value=data.username;
   setTimeout(()=>entrarJuego(),800);
 }
+
 async function iniciarSesion(){
   const email=document.getElementById('loginEmail').value.trim();
   const pass=document.getElementById('loginPass').value;
@@ -448,10 +506,13 @@ async function iniciarSesion(){
 
 function entrarJuego(){
   const nombre=document.getElementById('inputNombre').value.trim()||'Jugador';
-  jugador.nombre=nombre;jugador.color=SKINS[skinSeleccionada].color;
-  jugador.x=Math.random()*WORLD_W;jugador.y=Math.random()*WORLD_H;jugador.radius=30;
+  jugador.nombre=nombre;
+  jugador.color=SKINS[skinSeleccionada].color;
+  jugador.x=Math.random()*WORLD_W;
+  jugador.y=Math.random()*WORLD_H;
+  jugador.radius=30;
+  zoomLevel=1; targetZoom=1;
   const sala=document.getElementById('serverSelect').value;
-  prize=1000;
   document.getElementById('pantallaLogin').style.display='none';
   document.getElementById('ranking').style.display='block';
   document.getElementById('hudTopLeft').style.display='block';
@@ -461,6 +522,7 @@ function entrarJuego(){
   document.getElementById('bottomBar').style.display='flex';
   document.getElementById('chatBox').style.display='block';
   document.getElementById('btnAdmin').style.display='block';
+  document.getElementById('escHint').style.display='block';
   document.getElementById('timerSala').textContent=sala;
   document.getElementById('timerPrize').textContent='Prize: '+prize;
   document.getElementById('hudGold').textContent=gold;
@@ -479,56 +541,78 @@ function mostrarMuerto(killer){
 function reiniciar(){
   document.getElementById('pantallaFin').style.display='none';
   document.getElementById('pantallaGanador').style.display='none';
-  jugador.radius=30;jugador.x=Math.random()*WORLD_W;jugador.y=Math.random()*WORLD_H;
+  jugador.radius=30;
+  jugador.x=Math.random()*WORLD_W;
+  jugador.y=Math.random()*WORLD_H;
   enJuego=true;
   iniciarTimer();
   socket.emit('unirse',{nombre:jugador.nombre,color:jugador.color});
 }
 
 function actualizarRanking(data){
-  document.getElementById('listaRanking').innerHTML=data.slice(0,20).map((j,i)=>'<li class="'+(j.nombre===jugador.nombre?'yo':'')+'"><b>'+(i+1)+'.</b> '+j.nombre+' <b>'+Math.floor(j.radius)+'</b></li>').join('');
+  document.getElementById('listaRanking').innerHTML=data.slice(0,20).map((j,i)=>
+    '<li class="'+(j.nombre===jugador.nombre?'yo':'')+'"><b>'+(i+1)+'.</b> '+j.nombre+' <b>'+Math.floor(j.radius)+'</b></li>'
+  ).join('');
 }
 
-function toggleAdmin(){const p=document.getElementById('adminPanel');p.style.display=p.style.display==='none'?'block':'none';}
-function adminLogin(){socket.emit('adminLogin',document.getElementById('adminPass').value);}
-function adminCmd(tipo){socket.emit('adminCmd',{tipo});if(tipo==='gigante')jugador.radius=300;}
-function adminMensaje(){const txt=document.getElementById('adminMsg').value;if(txt)socket.emit('adminCmd',{tipo:'mensaje',texto:txt});}
-function adminDarOro(){
-  const user=document.getElementById('adminGoldUser').value.trim();
-  const amt=parseInt(document.getElementById('adminGoldAmt').value)||0;
-  if(user&&amt>0) socket.emit('adminCmd',{tipo:'darOro',user,cantidad:amt});
-}
+function toggleAdmin(){ const p=document.getElementById('adminPanel'); p.style.display=p.style.display==='none'?'block':'none'; }
+function adminLogin(){ socket.emit('adminLogin',document.getElementById('adminPass').value); }
+function adminCmd(tipo){ socket.emit('adminCmd',{tipo}); if(tipo==='gigante') jugador.radius=300; }
+function adminMensaje(){ const txt=document.getElementById('adminMsg').value; if(txt) socket.emit('adminCmd',{tipo:'mensaje',texto:txt}); }
+function adminDarOro(){ const user=document.getElementById('adminGoldUser').value.trim(); const amt=parseInt(document.getElementById('adminGoldAmt').value)||0; if(user&&amt>0) socket.emit('adminCmd',{tipo:'darOro',user,cantidad:amt}); }
 
-// Dibujar
-function dibujarCelula(obj,nombre){
-  ctx.save();
+// DIBUJAR
+function dibujarCelula(obj, nombre){
+  if(!obj || obj.radius <= 0) return;
+  const sx = obj.x - camX;
+  const sy = obj.y - camY;
+  // Culling
+  if(sx < -obj.radius*2 || sx > canvas.width+obj.radius*2) return;
+  if(sy < -obj.radius*2 || sy > canvas.height+obj.radius*2) return;
+
   ctx.beginPath();
-  ctx.arc(obj.x-camX,obj.y-camY,obj.radius,0,Math.PI*2);
-  ctx.fillStyle=obj.color;ctx.fill();
+  ctx.arc(sx, sy, obj.radius, 0, Math.PI*2);
+  ctx.fillStyle = obj.color;
+  ctx.fill();
   if(document.getElementById('optBorde')&&document.getElementById('optBorde').checked){
-    ctx.strokeStyle='rgba(255,255,255,0.25)';ctx.lineWidth=2;ctx.stroke();
+    ctx.strokeStyle='rgba(0,0,0,0.3)';
+    ctx.lineWidth=2;
+    ctx.stroke();
   }
   ctx.closePath();
-  if(nombre&&obj.radius>15&&document.getElementById('optNombre')&&document.getElementById('optNombre').checked){
-    ctx.fillStyle='#fff';
-    ctx.font='bold '+Math.min(obj.radius*0.5,18)+'px Arial';
-    ctx.textAlign='center';
-    ctx.fillText(nombre,obj.x-camX,obj.y-camY+5);
+  if(nombre && obj.radius > 15){
+    if(document.getElementById('optNombre')&&document.getElementById('optNombre').checked){
+      ctx.fillStyle='#fff';
+      ctx.font='bold '+Math.min(obj.radius*0.45,18)+'px Arial';
+      ctx.textAlign='center';
+      ctx.textBaseline='middle';
+      ctx.fillText(nombre, sx, sy);
+    }
     if(document.getElementById('optPunt')&&document.getElementById('optPunt').checked){
-      ctx.font=Math.min(obj.radius*0.35,13)+'px Arial';
-      ctx.fillText(Math.floor(obj.radius*10),obj.x-camX,obj.y-camY+20);
+      ctx.fillStyle='rgba(255,255,255,0.7)';
+      ctx.font=Math.min(obj.radius*0.3,12)+'px Arial';
+      ctx.textAlign='center';
+      ctx.fillText(Math.floor(obj.radius*10), sx, sy+obj.radius*0.4);
     }
   }
-  ctx.restore();
+  ctx.textBaseline='alphabetic';
 }
 
 function dibujarGrid(){
-  const dark=document.getElementById('optOscuro')&&document.getElementById('optOscuro').checked;
-  ctx.fillStyle=dark?'#111':'#e8e8d0';ctx.fillRect(0,0,canvas.width,canvas.height);
-  ctx.strokeStyle=dark?'rgba(255,255,255,0.04)':'rgba(0,0,0,0.08)';ctx.lineWidth=1;
+  const dark = document.getElementById('optOscuro')&&document.getElementById('optOscuro').checked;
+  ctx.fillStyle = dark ? '#111' : '#f0f0e0';
+  ctx.fillRect(0,0,canvas.width,canvas.height);
+  ctx.strokeStyle = dark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.07)';
+  ctx.lineWidth=1;
   const tam=50;
-  for(let x=-(camX%tam);x<canvas.width;x+=tam){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,canvas.height);ctx.stroke();}
-  for(let y=-(camY%tam);y<canvas.height;y+=tam){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(canvas.width,y);ctx.stroke();}
+  const offX = (-camX)%tam;
+  const offY = (-camY)%tam;
+  for(let x=offX; x<canvas.width; x+=tam){ ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,canvas.height); ctx.stroke(); }
+  for(let y=offY; y<canvas.height; y+=tam){ ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(canvas.width,y); ctx.stroke(); }
+  // Bordes del mundo
+  ctx.strokeStyle = dark ? 'rgba(255,0,0,0.5)' : 'rgba(255,0,0,0.4)';
+  ctx.lineWidth=3;
+  ctx.strokeRect(-camX, -camY, WORLD_W, WORLD_H);
 }
 
 function actualizarMinimap(){
@@ -537,21 +621,25 @@ function actualizarMinimap(){
   dot.style.top=(jugador.y/WORLD_H)*80+'px';
 }
 
-function nuevaComida(){return{x:Math.random()*WORLD_W,y:Math.random()*WORLD_H,radius:6,color:`hsl(${Math.random()*360},80%,60%)`};}
-for(let i=0;i<200;i++)comidas.push(nuevaComida());
+function nuevaComida(){ return{x:Math.random()*WORLD_W, y:Math.random()*WORLD_H, radius:6, color:`hsl(${Math.random()*360},80%,60%)`}; }
+for(let i=0;i<300;i++) comidas.push(nuevaComida());
 const bots=[];
-for(let i=0;i<8;i++)bots.push(new Bot(WORLD_W,WORLD_H));
+for(let i=0;i<10;i++) bots.push(new Bot(WORLD_W,WORLD_H));
 
 function gameLoop(){
   frameCount++;
   const now=Date.now();
-  if(now-lastFps>=1000){fps=frameCount;frameCount=0;lastFps=now;document.getElementById('hudFps').textContent=fps;}
+  if(now-lastFps>=1000){ fps=frameCount; frameCount=0; lastFps=now; document.getElementById('hudFps').textContent=fps; }
+
+  // Zoom suave
+  const autoZoom = document.getElementById('optZoom')&&document.getElementById('optZoom').checked;
+  if(autoZoom && enJuego){
+    const desiredZoom = Math.max(0.2, Math.min(1.5, 200/Math.max(jugador.radius*2, 60)));
+    targetZoom += (desiredZoom - targetZoom) * 0.03;
+  }
+  zoomLevel += (targetZoom - zoomLevel) * 0.1;
 
   ctx.save();
-  // Zoom automático basado en tamaño
-  const targetZoom = Math.max(0.3, Math.min(1.5, 30/Math.max(jugador.radius,30)));
-  zoomLevel += (targetZoom - zoomLevel) * 0.05;
-
   ctx.translate(canvas.width/2, canvas.height/2);
   ctx.scale(zoomLevel, zoomLevel);
   ctx.translate(-canvas.width/2, -canvas.height/2);
@@ -559,40 +647,73 @@ function gameLoop(){
   dibujarGrid();
 
   if(enJuego){
-    let dx=mouseX-canvas.width/2,dy=mouseY-canvas.height/2,dist=Math.sqrt(dx*dx+dy*dy);
-    const speed=jugador.speed*(30/Math.max(jugador.radius,30));
-    if(dist>10){jugador.x+=(dx/dist)*speed*2;jugador.y+=(dy/dist)*speed*2;}
-    jugador.x=Math.max(0,Math.min(WORLD_W,jugador.x));jugador.y=Math.max(0,Math.min(WORLD_H,jugador.y));
-    camX=jugador.x-canvas.width/2;camY=jugador.y-canvas.height/2;
+    const dx=mouseX-canvas.width/2, dy=mouseY-canvas.height/2;
+    const dist=Math.sqrt(dx*dx+dy*dy);
+    const speed = jugador.speed*(50/Math.max(jugador.radius,30));
+    if(dist>5){
+      jugador.x += (dx/dist)*speed;
+      jugador.y += (dy/dist)*speed;
+    }
+    jugador.x=Math.max(jugador.radius, Math.min(WORLD_W-jugador.radius, jugador.x));
+    jugador.y=Math.max(jugador.radius, Math.min(WORLD_H-jugador.radius, jugador.y));
+    camX=jugador.x-canvas.width/2;
+    camY=jugador.y-canvas.height/2;
+
     const score=Math.floor(jugador.radius*10);
-    if(score>maxScore)maxScore=score;
+    if(score>maxScore) maxScore=score;
     document.getElementById('hudSize').textContent=Math.floor(jugador.radius);
     document.getElementById('hudScore').textContent=score;
     document.getElementById('hudMax').textContent=maxScore;
     actualizarMinimap();
+
+    // Comer comida
     for(let i=comidas.length-1;i>=0;i--){
-      if(Math.hypot(jugador.x-comidas[i].x,jugador.y-comidas[i].y)<jugador.radius){
-        comidas[i]=nuevaComida();jugador.radius+=0.8;
-        // Ganar gold al comer
-        if(Math.random()<0.1){ gold+=1; document.getElementById('hudGold').textContent=gold; }
+      if(Math.hypot(jugador.x-comidas[i].x, jugador.y-comidas[i].y) < jugador.radius+comidas[i].radius){
+        comidas[i]=nuevaComida();
+        jugador.radius+=0.5;
+        if(Math.random()<0.08){ gold+=1; document.getElementById('hudGold').textContent=gold; }
       }
     }
+
+    // Comer bots
     for(let i=bots.length-1;i>=0;i--){
-      const bot=bots[i],d=Math.hypot(jugador.x-bot.x,jugador.y-bot.y);
-      if(d<jugador.radius&&jugador.radius>bot.radius*1.1){
+      const bot=bots[i];
+      const d=Math.hypot(jugador.x-bot.x, jugador.y-bot.y);
+      if(d < jugador.radius && jugador.radius > bot.radius*1.1){
         jugador.radius=Math.sqrt(jugador.radius**2+bot.radius**2);
-        gold+=20; document.getElementById('hudGold').textContent=gold;
-        mostrarNumFlotante('+20 gold','#ffd700');
+        gold+=15;
+        document.getElementById('hudGold').textContent=gold;
+        mostrarNumFlotante('+15 gold','#ffd700',true);
         bots[i]=new Bot(WORLD_W,WORLD_H);
-      }else if(d<bot.radius&&bot.radius>jugador.radius*1.1)mostrarMuerto(bot.nombre);
+      } else if(d < bot.radius && bot.radius > jugador.radius*1.1){
+        mostrarMuerto(bot.nombre);
+      }
     }
-    if(miId)socket.emit('mover',{x:jugador.x,y:jugador.y,radius:jugador.radius});
+
+    if(miId) socket.emit('mover',{x:jugador.x,y:jugador.y,radius:jugador.radius});
   }
 
-  for(let c of comidas){if(c.x-camX>-50&&c.x-camX<canvas.width+50&&c.y-camY>-50&&c.y-camY<canvas.height+50)dibujarCelula(c);}
-  for(let bot of bots){bot.decidir(comidas,[...bots,jugador]);bot.mover();bot.comerComida(comidas);dibujarCelula(bot,bot.nombre);}
-  for(let id in jugadoresRemotos){if(id!==miId){const j=jugadoresRemotos[id];dibujarCelula(j,j.nombre);}}
-  if(enJuego)dibujarCelula(jugador,jugador.nombre);
+  // Dibujar comida
+  for(let c of comidas){
+    const sx=c.x-camX, sy=c.y-camY;
+    if(sx>-20&&sx<canvas.width+20&&sy>-20&&sy<canvas.height+20) dibujarCelula(c);
+  }
+
+  // Dibujar bots
+  for(let bot of bots){
+    bot.decidir(comidas,[...bots,jugador]);
+    bot.mover();
+    bot.comerComida(comidas);
+    dibujarCelula(bot,bot.nombre);
+  }
+
+  // Dibujar jugadores remotos
+  for(let id in jugadoresRemotos){
+    if(id!==miId){ const j=jugadoresRemotos[id]; dibujarCelula(j,j.nombre); }
+  }
+
+  // Dibujar jugador
+  if(enJuego) dibujarCelula(jugador,jugador.nombre);
 
   ctx.restore();
   requestAnimationFrame(gameLoop);
