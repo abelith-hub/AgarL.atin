@@ -286,25 +286,39 @@ socket.on('adminFail',()=>alert('❌ Contraseña incorrecta'));
 socket.on('comerComida',data=>{if(data.index>=0&&data.index<comidas.length)comidas[data.index]=data.nueva;});
 socket.on('mensajeAdmin',txt=>{const el=document.getElementById('mensajeAdmin');el.textContent='📢 '+txt;el.style.display='block';setTimeout(()=>el.style.display='none',4000);});
 const usuarios={};
-function registrarse(){
-  const email=document.getElementById('regEmail').value.trim();
-  const user=document.getElementById('regUser').value.trim();
-  const pass=document.getElementById('regPass').value;
-  const msg=document.getElementById('regMsg');
+async function registrarse(){
+  const email = document.getElementById('regEmail').value.trim();
+  const user = document.getElementById('regUser').value.trim();
+  const pass = document.getElementById('regPass').value;
+  const msg = document.getElementById('regMsg');
   if(!email||!user||!pass){msg.textContent='Rellena todos los campos';return;}
-  if(usuarios[email]){msg.textContent='Correo ya registrado';return;}
-  usuarios[email]={user,pass};
+  const res = await fetch('/api/registro', {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({email, username:user, password:pass})
+  });
+  const data = await res.json();
+  if(!data.ok){msg.className='msgError';msg.textContent=data.msg;return;}
+  localStorage.setItem('token', data.token);
+  localStorage.setItem('username', data.username);
   msg.className='msgOk';msg.textContent='✅ Cuenta creada!';
-  setTimeout(()=>{ document.getElementById('registroBox').style.display='none'; },1500);
+  document.getElementById('inputNombre').value = data.username;
+  setTimeout(()=>entrarJuego(),800);
 }
-function iniciarSesion(){
-  const email=document.getElementById('loginEmail').value.trim();
-  const pass=document.getElementById('loginPass').value;
-  const msg=document.getElementById('loginMsg');
-  if(!email||!pass){msg.textContent='Rellena los campos';return;}
-  if(!usuarios[email]||usuarios[email].pass!==pass){msg.textContent='❌ Datos incorrectos';return;}
-  document.getElementById('inputNombre').value=usuarios[email].user;
+async function iniciarSesion(){
+  const email = document.getElementById('loginEmail').value.trim();
+  const pass = document.getElementById('loginPass').value;
+  const msg = document.getElementById('loginMsg');
+  if(!email||!pass){msg.textContent='Rellena todos los campos';return;}
+  const res = await fetch('/api/login', {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({email, password:pass})
+  });
+  const data = await res.json();
+  if(!data.ok){msg.className='msgError';msg.textContent=data.msg;return;}
+  localStorage.setItem('token', data.token);
+  localStorage.setItem('username', data.username);
   msg.className='msgOk';msg.textContent='✅ Sesión iniciada!';
+  document.getElementById('inputNombre').value = data.username;
   setTimeout(()=>entrarJuego(),800);
 }
 function entrarJuego(){
