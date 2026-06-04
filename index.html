@@ -645,19 +645,6 @@ function gameLoop(){
   const now=Date.now();
   if(now-lastFps>=1000){ fps=frameCount; frameCount=0; lastFps=now; document.getElementById('hudFps').textContent=fps; }
 
-  // Zoom suave
-  const autoZoom = document.getElementById('optZoom')&&document.getElementById('optZoom').checked;
-  if(autoZoom && enJuego){
-    const desiredZoom = Math.max(0.2, Math.min(1.5, 200/Math.max(jugador.radius*2, 60)));
-    targetZoom += (desiredZoom - targetZoom) * 0.03;
-  }
-  zoomLevel += (targetZoom - zoomLevel) * 0.1;
-
-  ctx.save();
-  ctx.translate(canvas.width/2, canvas.height/2);
-  ctx.scale(zoomLevel, zoomLevel);
-  ctx.translate(-canvas.width/2, -canvas.height/2);
-
   dibujarGrid();
 
   if(enJuego){
@@ -743,7 +730,7 @@ function gameLoop(){
       bolasExtra.splice(i,1);
     }
   }
-  ctx.restore();
+
   requestAnimationFrame(gameLoop);
 }
 gameLoop();
