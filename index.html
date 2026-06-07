@@ -153,7 +153,14 @@
     <input type="password" id="loginPass" placeholder="Contraseña" />
     <div id="loginMsg" class="msgError"></div>
     <button onclick="iniciarSesion()">Iniciar sesión</button>
-    <a href="#" onclick="mostrarRegistro()">Registro de Usuario</a>
+    <div id="sesionActiva" style="display:none;margin-top:8px;padding:8px;background:rgba(0,100,0,0.3);border-radius:6px;font-size:12px">
+      ✅ Sesión iniciada como <b id="userLogueado"></b>
+      <br><br>
+      <a href="#" id="linkMiPagina" style="color:#4af;display:block;margin:4px 0">👤 Mi página</a>
+      <a href="#" onclick="cerrarSesion()" style="color:#f66;display:block;margin:4px 0">🚪 Cerrar sesión</a>
+      <a href="#" style="color:#888;display:block;margin:4px 0">🔑 Restablecer contraseña</a>
+    </div>
+    <a href="#" onclick="mostrarRegistro()" id="linkRegistro">Registro de Usuario</a>
     <div id="registroBox" style="display:none;margin-top:10px">
       <hr style="border-color:#333;margin:8px 0">
       <h3 style="color:#4af;font-size:12px;margin-bottom:6px">Registro</h3>
@@ -221,10 +228,11 @@ canvas.height = window.innerHeight;
 const WORLD_W = 14142, WORLD_H = 14142;
 let miId = null, jugadoresRemotos = {}, enJuego = false;
 let frameCount = 0, lastFps = Date.now(), fps = 60;
-let zoom = 1; // zoom manual
+let zoom = 1;
 let gold = 0, prize = 1000;
 let timerSeg = 600, timerInterval = null;
 let chatAbierto = false, maxScore = 0;
+let userId = null;
 
 // SKINS
 const SKINS = [
@@ -248,6 +256,37 @@ SKINS.forEach((c,i)=>{
 function abrirSkins(){ document.getElementById('skinModal').style.display='flex'; }
 function cerrarSkins(){ document.getElementById('skinModal').style.display='none'; }
 function mostrarRegistro(){ const b=document.getElementById('registroBox'); b.style.display=b.style.display==='none'?'block':'none'; }
+
+function mostrarSesionActiva(username){
+  document.getElementById('sesionActiva').style.display='block';
+  document.getElementById('userLogueado').textContent=username;
+  document.getElementById('linkMiPagina').href='/perfil/'+username;
+  document.getElementById('linkMiPagina').target='_blank';
+  document.querySelector('#loginRight button').style.display='none';
+  document.getElementById('linkRegistro').style.display='none';
+}
+
+function cerrarSesion(){
+  localStorage.removeItem('token');
+  localStorage.removeItem('username');
+  localStorage.removeItem('userId');
+  userId=null; gold=0;
+  document.getElementById('sesionActiva').style.display='none';
+  document.getElementById('loginMsg').textContent='';
+  document.getElementById('loginEmail').value='';
+  document.getElementById('loginPass').value='';
+  document.querySelector('#loginRight button').style.display='block';
+  document.getElementById('linkRegistro').style.display='block';
+  document.getElementById('inputNombre').value='';
+}
+
+// Restaurar sesión al cargar
+window.addEventListener('load',()=>{
+  const token=localStorage.getItem('token');
+  const username=localStorage.getItem('username');
+  const uid=localStorage.getItem('userId');
+  if(token&&username){ userId=uid; mostrarSesionActiva(username); document.getElementById('inputNombre').value=username; }
+});
 
 // Jugador y cámara
 const jugador = { x:WORLD_W/2, y:WORLD_H/2, radius:30, color:SKINS[0], nombre:'Jugador', speed:4 };
@@ -357,16 +396,8 @@ function flotar(txt,color){
 
 // Timer
 function iniciarTimer(){
-  timerSeg=600;
-  if(timerInterval) clearInterval(timerInterval);
-  timerInterval=setInterval(()=>{
-    timerSeg--;
-    const m=Math.floor(timerSeg/60), s=timerSeg%60;
-    const el=document.getElementById('timerTop');
-    el.textContent=m+':'+(s<10?'0':'')+s;
-    el.className=timerSeg<60?'rojo':'';
-    if(timerSeg<=0){ clearInterval(timerInterval); mostrarGanador(); }
-  },1000);
+  // El servidor maneja el timer, solo reseteamos localmente
+  if(timerInterval){ clearInterval(timerInterval); timerInterval=null; }
 }
 
 function mostrarGanador(){
@@ -403,6 +434,30 @@ socket.on('comerComida',data=>{ if(data.index>=0&&data.index<comidas.length) com
 socket.on('mensajeAdmin',txt=>{ const el=document.getElementById('mensajeAdmin'); el.textContent='📢 '+txt; el.style.display='block'; setTimeout(()=>el.style.display='none',4000); });
 socket.on('chat',data=>{ const msgs=document.getElementById('chatMsgs'); const d=document.createElement('div'); d.textContent=data.nombre+': '+data.msg; msgs.appendChild(d); while(msgs.children.length>6) msgs.removeChild(msgs.firstChild); });
 socket.on('darOro',data=>{ gold+=data.cantidad; document.getElementById('hudGold').textContent=gold; flotar('+'+data.cantidad+' gold','#ffd700'); });
+socket.on('timer',data=>{ 
+  timerSeg=data.tiempo; 
+  const m=Math.floor(data.tiempo/60),s=data.tiempo%60;
+  const el=document.getElementById('timerTop');
+  el.textContent=m+':'+(s<10?'0':'')+s;
+  el.className=data.tiempo<60?'rojo':'';
+});
+socket.on('prizeInfo',data=>{ 
+  prize=data.prize; 
+  document.getElementById('timerPrize').textContent='Prize: '+prize.toLocaleString();
+  document.getElementById('hudPrize').textContent=prize.toLocaleString();
+});
+socket.on('ganadorSala',data=>{
+  if(timerInterval){ clearInterval(timerInterval); timerInterval=null; }
+  enJuego=false;
+  document.getElementById('ganadorNombre').textContent='🥇 '+data.ganador;
+  document.getElementById('ganadorPrize').textContent='Premio: +'+data.prize.toLocaleString()+' gold';
+  document.getElementById('pantallaGanador').style.display='flex';
+  if(data.ganador===jugador.nombre){ gold+=data.prize; document.getElementById('hudGold').textContent=gold; flotar('+'+data.prize+' gold!','#ffd700'); }
+  let cd=30;
+  const cdEl=document.getElementById('countdownGanador');
+  const cdI=setInterval(()=>{ cd--; cdEl.textContent=cd; if(cd<=0){ clearInterval(cdI); document.getElementById('pantallaGanador').style.display='none'; reiniciar(); } },1000);
+});
+socket.on('chatMsg',data=>{ const msgs=document.getElementById('chatMsgs'); const d=document.createElement('div'); d.style.color=data.color||'#fff'; d.textContent=data.nombre+': '+data.msg; msgs.appendChild(d); while(msgs.children.length>8) msgs.removeChild(msgs.firstChild); });
 
 // LOGIN
 async function registrarse(){
@@ -414,12 +469,17 @@ async function registrarse(){
   const res=await fetch('/api/registro',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,username:user,password:pass})});
   const data=await res.json();
   if(!data.ok){msg.className='msgError';msg.textContent=data.msg;return;}
-  localStorage.setItem('token',data.token); localStorage.setItem('username',data.username);
+  localStorage.setItem('token',data.token);
+  localStorage.setItem('username',data.username);
+  if(data.userId) localStorage.setItem('userId',data.userId);
+  userId=data.userId||null;
   gold=data.oro||0;
   msg.className='msgOk'; msg.textContent='✅ Cuenta creada!';
   document.getElementById('inputNombre').value=data.username;
+  mostrarSesionActiva(data.username);
   setTimeout(()=>entrarJuego(),800);
 }
+
 async function iniciarSesion(){
   const email=document.getElementById('loginEmail').value.trim();
   const pass=document.getElementById('loginPass').value;
@@ -428,10 +488,14 @@ async function iniciarSesion(){
   const res=await fetch('/api/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,password:pass})});
   const data=await res.json();
   if(!data.ok){msg.className='msgError';msg.textContent=data.msg;return;}
-  localStorage.setItem('token',data.token); localStorage.setItem('username',data.username);
+  localStorage.setItem('token',data.token);
+  localStorage.setItem('username',data.username);
+  if(data.userId) localStorage.setItem('userId',data.userId);
+  userId=data.userId||null;
   gold=data.oro||0;
   msg.className='msgOk'; msg.textContent='✅ Sesión iniciada!';
   document.getElementById('inputNombre').value=data.username;
+  mostrarSesionActiva(data.username);
   setTimeout(()=>entrarJuego(),800);
 }
 
@@ -450,7 +514,7 @@ function entrarJuego(){
   document.getElementById('hudPrize').textContent=prize;
   enJuego=true;
   iniciarTimer();
-  socket.emit('unirse',{nombre,color:jugador.color});
+  socket.emit('unirse',{nombre,color:jugador.color,sala,userId});
 }
 
 function mostrarMuerto(killer){
@@ -463,7 +527,8 @@ function reiniciar(){
   document.getElementById('pantallaGanador').style.display='none';
   jugador.radius=30; jugador.x=Math.random()*WORLD_W; jugador.y=Math.random()*WORLD_H;
   bolasDiv=[]; enJuego=true; iniciarTimer();
-  socket.emit('unirse',{nombre:jugador.nombre,color:jugador.color});
+  const sala=document.getElementById('serverSelect').value;
+  socket.emit('unirse',{nombre:jugador.nombre,color:jugador.color,sala,userId});
 }
 function actualizarRanking(data){
   document.getElementById('listaRanking').innerHTML=data.slice(0,20).map((j,i)=>
